@@ -25,12 +25,12 @@ namespace osu.Game.Rulesets.Scoring
             new DifficultyRange(HitResult.Miss, 188, 173, 158),
         };
 
-        private double perfect;
-        private double great;
-        private double good;
-        private double ok;
-        private double meh;
-        private double miss;
+        public double perfect;
+        public double great;
+        public double good;
+        public double ok;
+        public double meh;
+        public double miss;
 
         /// <summary>
         /// An empty <see cref="HitWindows"/> with only <see cref="HitResult.Miss"/> and <see cref="HitResult.Perfect"/>.
