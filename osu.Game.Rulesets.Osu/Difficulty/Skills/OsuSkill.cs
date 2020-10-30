@@ -149,7 +149,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         /// <summary>
         /// Perform difficulty calculations
         /// </summary>
-        public override void Calculate(int? beatmapid)
+        public void Calculate(int? beatmapid)
         {
 #if OSU_SKILL_STRAIN_AFTER_NOTE
             if (!lastScaled)
