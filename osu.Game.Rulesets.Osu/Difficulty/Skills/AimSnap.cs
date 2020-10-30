@@ -16,7 +16,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     {
         private double StrainDecay = 0.2;
         private const float prevMultiplier = 0.33f;
-        private const double distThresh = 125;
 
         protected override double SkillMultiplier => 45;
         protected override double StrainDecayBase => StrainDecay;
@@ -33,32 +32,34 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             if (Previous.Count > 1)
             {
-                // Here we set a custom strain decay rate that decays based on # of objects rather than MS.
-                // This is just so we can focus on balancing only the strain rewarded, and time no longer matters.
-                // this will make a repeated pattern "cap out" or reach 85 maximum difficulty in 12 objects.
-                StrainDecay = Math.Pow(.85, 1000.0 / Math.Min(osuCurrentObj.StrainTime, 200.0));
-
                 // though we are on current, we want to use current as reference for previous,
                 // so for what its worth, difficulty calculation is a function of Previous[0]
                 var osuPrevObj = (OsuDifficultyHitObject)Previous[1];
                 var osuCurrentObj = (OsuDifficultyHitObject)Previous[0];
                 var osuNextObj = (OsuDifficultyHitObject)current;
 
+                // Here we set a custom strain decay rate that decays based on # of objects rather than MS.
+                // This is just so we can focus on balancing only the strain rewarded, and time no longer matters.
+                // this will make a repeated pattern "cap out" or reach 85 maximum difficulty in 12 objects.
+                StrainDecay = Math.Pow(.85, 1000.0 / Math.Min(osuCurrentObj.StrainTime, 200.0));
+
                 // here we generate a value of being snappy or flowy that is fed into the gauss error function to build a probability.
-                var x = (osuCurrentObj.JumpDistance - Math.Pow(Math.Sin(Math.Min(osuNextObj.JumpDistance / 1.25, Math.PI / 2)), 2))
+                var x = (osuCurrentObj.JumpDistance - (Math.Pow(Math.Sin(Math.Min(osuNextObj.JumpDistance, Math.PI / 2)), 2)
                         * (osuCurrentObj.JumpDistance / 3)
-                        * Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 2)
-                        * (osuCurrentObj.DeltaTime / 50);
+                        * Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 2)))
+                        * (osuCurrentObj.DeltaTime - 50);
 
                 // this is where we use an ERF function to derive a probability.
                 var snappiness = 0.5 * erf((-75 + x) / (25 * Math.Sqrt(2))) + 0.5;
+
+                Console.WriteLine((osuCurrentObj.StartTime / 1000).ToString() + " " + osuCurrentObj.JumpDistance.ToString());
 
                 // Create velocity vectors, scale prior by prevMultiplier
                 var prevVector = Vector2.Multiply(Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime), prevMultiplier);
                 var currVector = Vector2.Divide(osuCurrentObj.DistanceVector, (float)osuCurrentObj.StrainTime);
 
                 // add them to get our final velocity, length is the observed velocity and thus the difficulty.
-                var adjVelocity = Vector2.Add(CurrVector, prevVector).Length;
+                var adjVelocity = Vector2.Add(currVector, prevVector).Length;
 
                 strain = adjVelocity * snappiness;
             }
