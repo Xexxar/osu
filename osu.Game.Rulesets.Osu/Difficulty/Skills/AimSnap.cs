@@ -37,33 +37,35 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         //   return strain;
         // }
         {
-            StrainDecay = 0.15;
+            StrainDecay = 1;
 
             if (current.BaseObject is Spinner)
                 return 0;
-
-            var osuNextObj = (OsuDifficultyHitObject)current;
-            var dCurr2Next = osuNextObj.JumpDistance;
 
             double strain = 0;
 
             if (Previous.Count > 1 && osuNextObj.Angle != null)
             {
-                var osuCurrentObj = (OsuDifficultyHitObject)Previous[0];
                 StrainDecay = Math.Pow(.85, 1000.0 / Math.Min(osuCurrentObj.StrainTime, 200.0));
 
+                var osuPrevObj = (OsuDifficultyHitObject)Previous[1];
+                var osuCurrentObj = (OsuDifficultyHitObject)Previous[0];
+                var osuNextObj = (OsuDifficultyHitObject)current;
+
+                var dCurr2Next = osuNextObj.JumpDistance;
                 var dPrev2Curr = osuCurrentObj.JumpDistance;
 
-                //var osuPrevObj = (OsuDifficultyHitObject)Previous[1];
-                //leave this commented out for now
+                var x = (osuCurrentObj.JumpDistance - Math.Pow(Math.Sin(Math.Min(osuNextObj.JumpDistance / 1.25, Math.PI / 2)), 2))
+                        * (osuCurrentObj.JumpDistance / 3)
+                        * Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 2)
+                        * (osuCurrentObj.DeltaTime / 50);
 
-                var x = (dPrev2Curr - Math.Pow(Math.Sin(Math.Min(dCurr2Next / 1.25, Math.PI / 2)), 2)) * (dPrev2Curr / 3) * Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 2) * (osuCurrentObj.DeltaTime / 50);
                 var snappiness = 0.5 * erf((-75 + x) / (25 * Math.Sqrt(2))) + 0.5;
 
-                var vCurr2Next = Vector2.Divide(osuNextObj.DistanceVector, (float)osuNextObj.DeltaTime);
-                var vPrev2Curr = Vector2.Multiply(Vector2.Divide(osuCurrentObj.DistanceVector, (float)osuCurrentObj.DeltaTime), (float)0.33);
+                var prevVector = Vector2.Multiply(Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime), (float)0.33);
+                var currVector = Vector2.Divide(osuCurrentObj.DistanceVector, (float)osuCurrentObj.StrainTime);
 
-                var adjVelocity = Vector2.Add(vCurr2Next, vPrev2Curr).Length;
+                var adjVelocity = Vector2.Add(CurrVector, vPrev2Curr).Length;
 
                 strain = adjVelocity * snappiness;
             }
