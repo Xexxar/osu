@@ -122,6 +122,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 ApproachRate = preempt > 1200 ? (1800 - preempt) / 120 : (1200 - preempt) / 150 + 5,
                 OverallDifficulty = overralDifficulty,
                 MaxCombo = maxCombo,
+                countCircles = circles,
+                countSliders = sliders,
 
                 JumpAimStrain = jumpAimRating,
                 JumpAimComboStarRatings = jumpAimComboSr,

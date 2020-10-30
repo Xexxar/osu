@@ -19,8 +19,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
     {
         public new OsuDifficultyAttributes Attributes => (OsuDifficultyAttributes)base.Attributes;
 
-        private readonly int countHitCircles;
-        private readonly int countSliders;
+        private readonly double countHitCircles;
+        private readonly double countSliders;
         private readonly int beatmapMaxCombo;
 
         private Mod[] mods;
@@ -36,15 +36,12 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         private const double speed_pp_factor = 1.5f;
         private const double total_factor = 1.1f;
 
-        public OsuPerformanceCalculator(Ruleset ruleset, WorkingBeatmap beatmap, ScoreInfo score)
-            : base(ruleset, beatmap, score)
+        public OsuPerformanceCalculator(Ruleset ruleset, DifficultyAttributes attributes, ScoreInfo score)
+           : base(ruleset, attributes, score)
         {
-            countHitCircles = Beatmap.HitObjects.Count(h => h is HitCircle);
-            countSliders = Beatmap.HitObjects.Count(h => h is Slider);
-
-            beatmapMaxCombo = Beatmap.HitObjects.Count;
-            // Add the ticks + tail of the slider. 1 is subtracted because the "headcircle" would be counted twice (once for the slider itself in the line above)
-            beatmapMaxCombo += Beatmap.HitObjects.OfType<Slider>().Sum(s => s.NestedHitObjects.Count - 1);
+            countHitCircles = Attributes.countCircles;
+            countSliders = Attributes.countSliders;
+            beatmapMaxCombo = Attributes.MaxCombo;
         }
 
         public override double Calculate(Dictionary<string, double> categoryRatings = null)

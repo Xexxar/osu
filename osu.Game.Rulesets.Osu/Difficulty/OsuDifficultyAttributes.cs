@@ -42,5 +42,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
         public double ApproachRate;
         public double OverallDifficulty;
+
+        public double countSliders;
+        public double countCircles;
     }
 }
