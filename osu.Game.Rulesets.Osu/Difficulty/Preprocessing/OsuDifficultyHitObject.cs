@@ -12,7 +12,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
 {
     public class OsuDifficultyHitObject : DifficultyHitObject
     {
-        private const int normalized_radius = 52;
+        private const double normalized_diameter = 1;
 
         protected new OsuHitObject BaseObject => (OsuHitObject)base.BaseObject;
 
@@ -46,6 +46,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
         /// Calculated as the angle between the circles (current-2, current-1, current).
         /// </summary>
         public double? Angle { get; private set; }
+
         /// <summary>
         /// Milliseconds elapsed since the start time of the previous <see cref="OsuDifficultyHitObject"/>, with a minimum of 50ms.
         /// </summary>
@@ -70,7 +71,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
         private void setDistances(double clockRate)
         {
             // We will scale distances by this factor, so we can assume a uniform CircleSize among beatmaps.
-            float scalingFactor = normalized_radius / (float)BaseObject.Radius;
+            float scalingFactor = (float)normalized_diameter / 2 * (float)BaseObject.Radius;
             if (BaseObject.Radius < 30)
             {
                 float smallCircleBonus = (30 - (float)BaseObject.Radius) / 50;

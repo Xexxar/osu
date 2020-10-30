@@ -42,6 +42,26 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             if (current.BaseObject is Spinner)
                 return 0;
 
+            var osuNextObj = (OsuDifficultyHitObject)current;
+            var dCurr2Next = osuNextObj.JumpDistance;
+
+            double strain = 0;
+
+            if (Previous.Count > 0 && osuNextObj.Angle != null)
+            {
+                var osuCurrentObj = (OsuDifficultyHitObject)Previous[0];
+                var dPrev2Curr = osuCurrentObj.JumpDistance;
+
+                //var osuPrevObj = (OsuDifficultyHitObject)Previous[1];
+                //leave this commented out for now
+
+                var x = (dPrev2Curr - Math.Pow(Math.Sin(Math.Min(dCurr2Next / 1.25, Math.PI / 2)), 2)) * (dPrev2Curr / 3) * Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 2) * (osuCurrentObj.DeltaTime / 50);
+                var snappiness = 0.5 * erf((-75 + x) / (25 * Math.Sqrt(2))) + 0.5;
+            }
+
+            return strain;
+
+            /**
             var osuCurrent = (OsuDifficultyHitObject)current;
             if (osuCurrent.BaseObject is Slider && osuCurrent.TravelTime < osuCurrent.StrainTime)
               StrainDecay = Math.Min(osuCurrent.TravelTime, osuCurrent.StrainTime - 30.0) / osuCurrent.StrainTime *
@@ -79,7 +99,32 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             return strain;
         }
+        **/
 
-        private Vector2 applyDiminishingDist(Vector2 val) => val - (float)distThresh * val.Normalized();
+            //private Vector2 applyDiminishingDist(Vector2 val) => val - (float)distThresh * val.Normalized();
+        }
+
+        private static double erf(double x)
+        {
+            // constants
+            double a1 = 0.254829592;
+            double a2 = -0.284496736;
+            double a3 = 1.421413741;
+            double a4 = -1.453152027;
+            double a5 = 1.061405429;
+            double p = 0.3275911;
+
+            // Save the sign of x
+            int sign = 1;
+            if (x < 0)
+                sign = -1;
+            x = Math.Abs(x);
+
+            // A&S formula 7.1.26
+            double t = 1.0 / (1.0 + p * x);
+            double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.Exp(-x * x);
+
+            return sign * y;
+        }
     }
 }
