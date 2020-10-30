@@ -17,7 +17,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private double StrainDecay = 0.2;
         private const float prevMultiplier = 0.33f;
 
-        protected override double SkillMultiplier => 45;
+        protected override double SkillMultiplier => 2500;
         protected override double StrainDecayBase => StrainDecay;
         protected override double StarMultiplierPerRepeat => 1.07;
 
@@ -52,7 +52,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 // this is where we use an ERF function to derive a probability.
                 var snappiness = 0.5 * erf((-75 + x) / (25 * Math.Sqrt(2))) + 0.5;
 
-                Console.WriteLine((osuCurrentObj.StartTime / 1000).ToString() + " " + osuCurrentObj.JumpDistance.ToString());
+                Console.WriteLine(snappiness);
 
                 // Create velocity vectors, scale prior by prevMultiplier
                 var prevVector = Vector2.Multiply(Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime), prevMultiplier);
