@@ -49,9 +49,11 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                         * Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 2)))
                         * (osuCurrentObj.DeltaTime - 50);
 
+                var distributionMean = Math.Max(75, 75 + (75 / .225 * (32 - osuCurrentObj.BaseObject.Radius))/100);
+
                 // this is where we use an ERF function to derive a probability.
-                var flowProb = 0.5 - 0.5 * erf((-75 + x) / (25 * Math.Sqrt(2)));
-                var snapProb = 0.5 + 0.5 * erf((-75 + x) / (25 * Math.Sqrt(2)));
+                var flowProb = 0.5 - 0.5 * erf((-distributionMean + x) / (25 * Math.Sqrt(2)));
+                var snapProb = 0.5 + 0.5 * erf((-distributionMean + x) / (25 * Math.Sqrt(2)));
 
                 // Create velocity vectors, scale prior by prevMultiplier
                 var prevVector = Vector2.Multiply(Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime), prevMultiplier);
@@ -61,8 +63,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 var flowVelocity = Vector2.Subtract(currVector, prevVector).Length;
                 var snapVelocity = Vector2.Add(currVector, prevVector).Length;
 
-                var snapStrain = snapVelocity * Math.Max(0.5, snapProb);
-                var flowStrain = flowVelocity * Math.Max(0.5, flowProb);
+                var snapStrain = snapVelocity * (4 * snapProb * flowProb);
+                var flowStrain = flowVelocity * (4 * snapProb * flowProb);
 
                 strain = snapStrain + flowStrain;
             }

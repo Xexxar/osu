@@ -14,7 +14,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
     {
         private const double normalized_diameter = 1;
 
-        protected new OsuHitObject BaseObject => (OsuHitObject)base.BaseObject;
+        public new OsuHitObject BaseObject => (OsuHitObject)base.BaseObject;
 
         /// <summary>
         ///  Distance from the end position of the previous <see cref="OsuDifficultyHitObject"/> to the start position of this <see cref="OsuDifficultyHitObject"/>.

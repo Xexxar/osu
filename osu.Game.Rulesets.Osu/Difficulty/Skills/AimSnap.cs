@@ -49,8 +49,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                         * Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 2)))
                         * (osuCurrentObj.DeltaTime - 50);
 
+                var distributionMean = Math.Max(75, 75 + (75 / .225 * (32 - osuCurrentObj.BaseObject.Radius)) / 100);
+
                 // this is where we use an ERF function to derive a probability.
-                var snappiness = 0.5 * erf((-75 + x) / (25 * Math.Sqrt(2))) + 0.5;
+                var snappiness = 0.5 * erf((-distributionMean + x) / (25 * Math.Sqrt(2))) + 0.5;
 
                 Console.WriteLine(snappiness);
 
