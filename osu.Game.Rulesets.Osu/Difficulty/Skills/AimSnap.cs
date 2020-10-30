@@ -15,8 +15,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     public class AimSnap : OsuSkill
     {
         private double StrainDecay = 0.15;
-        private const float prevMultiplier = 0.45f;
-        private double angle_thresh = Math.PI / 2.0 - Math.Acos(prevMultiplier / 2.0);
+        private const float prevMultiplier = 0.33f;
         private const double distThresh = 125;
 
         protected override double SkillMultiplier => 45;
@@ -24,18 +23,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         protected override double StarMultiplierPerRepeat => 1.07;
 
         protected override double StrainValueOf(DifficultyHitObject current)
-        // {
-        //   double strain = 0.0;
-        //   // first we grab vectors and straintimes for osuCurrent (2->3), osuNext (3->4), and OsuPrevious (1->2)
-        //
-        //   // first we want to calculate the probability of snap aim.
-        //   // This is done by first calculating our x Value
-        //   //
-        //   // (osuCurrent. - (sin^2 (min(d2/90, pi/2))) * (d / 3) * sin^2(angle / 2) * (dt - 50)
-        //   //
-        //
-        //   return strain;
-        // }
         {
             StrainDecay = 1;
 
@@ -62,7 +49,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
                 var snappiness = 0.5 * erf((-75 + x) / (25 * Math.Sqrt(2))) + 0.5;
 
-                var prevVector = Vector2.Multiply(Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime), (float)0.33);
+                var prevVector = Vector2.Multiply(Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime), prevMultiplier);
                 var currVector = Vector2.Divide(osuCurrentObj.DistanceVector, (float)osuCurrentObj.StrainTime);
 
                 var adjVelocity = Vector2.Add(CurrVector, vPrev2Curr).Length;
