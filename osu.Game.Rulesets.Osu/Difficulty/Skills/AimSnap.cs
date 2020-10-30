@@ -47,9 +47,11 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             double strain = 0;
 
-            if (Previous.Count > 0 && osuNextObj.Angle != null)
+            if (Previous.Count > 1 && osuNextObj.Angle != null)
             {
                 var osuCurrentObj = (OsuDifficultyHitObject)Previous[0];
+                StrainDecay = Math.Pow(.85, 1000.0 / Math.Min(osuCurrentObj.StrainTime, 200.0));
+
                 var dPrev2Curr = osuCurrentObj.JumpDistance;
 
                 //var osuPrevObj = (OsuDifficultyHitObject)Previous[1];
@@ -57,51 +59,17 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
                 var x = (dPrev2Curr - Math.Pow(Math.Sin(Math.Min(dCurr2Next / 1.25, Math.PI / 2)), 2)) * (dPrev2Curr / 3) * Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 2) * (osuCurrentObj.DeltaTime / 50);
                 var snappiness = 0.5 * erf((-75 + x) / (25 * Math.Sqrt(2))) + 0.5;
+
+                var vCurr2Next = Vector2.Divide(osuNextObj.DistanceVector, (float)osuNextObj.DeltaTime);
+                var vPrev2Curr = Vector2.Multiply(Vector2.Divide(osuCurrentObj.DistanceVector, (float)osuCurrentObj.DeltaTime), (float)0.33);
+
+                var adjVelocity = Vector2.Add(vCurr2Next, vPrev2Curr).Length;
+
+                strain = adjVelocity * snappiness;
             }
 
             return strain;
 
-            /**
-            var osuCurrent = (OsuDifficultyHitObject)current;
-            if (osuCurrent.BaseObject is Slider && osuCurrent.TravelTime < osuCurrent.StrainTime)
-              StrainDecay = Math.Min(osuCurrent.TravelTime, osuCurrent.StrainTime - 30.0) / osuCurrent.StrainTime *
-                (1.0 - Math.Pow(1.0 - StrainDecay, Math.Pow(1.0 + osuCurrent.TravelDistance / Math.Max(osuCurrent.TravelTime, 30.0), 3.0))) +
-                Math.Max(30.0, osuCurrent.StrainTime - osuCurrent.TravelTime) / osuCurrent.StrainTime * StrainDecay;
-
-            double strain = 0;
-
-            if (Previous.Count > 0 && osuCurrent.Angle != null)
-            {
-                var osuPrevious = (OsuDifficultyHitObject)Previous[0];
-                if (osuCurrent.JumpDistance >= distThresh && osuPrevious.JumpDistance >= distThresh)
-                {
-                    if (osuCurrent.Angle.Value <= angle_thresh)
-                        strain = Math.Abs((applyDiminishingDist(osuCurrent.DistanceVector).Length - prevMultiplier * applyDiminishingDist(osuPrevious.DistanceVector).Length) + osuCurrent.TravelDistance) / Math.Max(osuCurrent.StrainTime, osuPrevious.StrainTime);
-                    else
-                    {
-                        Vector2 Prev1 = new Vector2(
-                            osuPrevious.DistanceVector.X * (float)Math.Cos(angle_thresh) - osuPrevious.DistanceVector.Y * (float)Math.Sin(angle_thresh),
-                            osuPrevious.DistanceVector.X * (float)Math.Sin(angle_thresh) + osuPrevious.DistanceVector.Y * (float)Math.Cos(angle_thresh)
-                        );
-                        Vector2 Prev2 = new Vector2(
-                            osuPrevious.DistanceVector.X * (float)Math.Cos(-angle_thresh) - osuPrevious.DistanceVector.Y * (float)Math.Sin(-angle_thresh),
-                            osuPrevious.DistanceVector.X * (float)Math.Sin(-angle_thresh) + osuPrevious.DistanceVector.Y * (float)Math.Cos(-angle_thresh)
-                        );
-                        double strain1 = (applyDiminishingDist(osuCurrent.DistanceVector) + prevMultiplier * applyDiminishingDist(Prev1)).Length;
-                        double strain2 = (applyDiminishingDist(osuCurrent.DistanceVector) + prevMultiplier * applyDiminishingDist(Prev2)).Length;
-
-                        strain = (Math.Min(strain1, strain2) + osuCurrent.TravelDistance) / Math.Max(osuCurrent.StrainTime, osuPrevious.StrainTime);
-                    }
-                }
-            }
-            else if (osuCurrent.JumpDistance >= distThresh)
-                strain = (applyDiminishingDist(osuCurrent.DistanceVector).Length + osuCurrent.TravelDistance) / osuCurrent.StrainTime;
-
-            return strain;
-        }
-        **/
-
-            //private Vector2 applyDiminishingDist(Vector2 val) => val - (float)distThresh * val.Normalized();
         }
 
         private static double erf(double x)
