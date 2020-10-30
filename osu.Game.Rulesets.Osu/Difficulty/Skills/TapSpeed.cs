@@ -11,7 +11,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// <summary>
     /// idk something lol
     /// </summary>
-    public class Speed : OsuSkill
+    public class TapSpeed : OsuSkill
     {
         private double StrainDecay = 0.9;
         protected override double SkillMultiplier => 12;

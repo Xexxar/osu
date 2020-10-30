@@ -12,7 +12,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// <summary>
     /// Represents the skill required to correctly aim at every object in the map with a uniform CircleSize and normalized distances.
     /// </summary>
-    public class JumpAim : OsuSkill
+    public class AimSnap : OsuSkill
     {
         private double StrainDecay = 0.15;
         private const float prevMultiplier = 0.45f;
@@ -24,6 +24,18 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         protected override double StarMultiplierPerRepeat => 1.07;
 
         protected override double StrainValueOf(DifficultyHitObject current)
+        // {
+        //   double strain = 0.0;
+        //   // first we grab vectors and straintimes for osuCurrent (2->3), osuNext (3->4), and OsuPrevious (1->2)
+        //
+        //   // first we want to calculate the probability of snap aim.
+        //   // This is done by first calculating our x Value
+        //   //
+        //   // (osuCurrent. - (sin^2 (min(d2/90, pi/2))) * (d / 3) * sin^2(angle / 2) * (dt - 50)
+        //   //
+        //
+        //   return strain;
+        // }
         {
             StrainDecay = 0.15;
 
@@ -31,13 +43,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 return 0;
 
             var osuCurrent = (OsuDifficultyHitObject)current;
-            if (osuCurrent.BaseObject is Slider && osuCurrent.TravelTime < osuCurrent.StrainTime) StrainDecay = Math.Min(osuCurrent.TravelTime, osuCurrent.StrainTime - 30.0) / osuCurrent.StrainTime *
+            if (osuCurrent.BaseObject is Slider && osuCurrent.TravelTime < osuCurrent.StrainTime)
+              StrainDecay = Math.Min(osuCurrent.TravelTime, osuCurrent.StrainTime - 30.0) / osuCurrent.StrainTime *
                 (1.0 - Math.Pow(1.0 - StrainDecay, Math.Pow(1.0 + osuCurrent.TravelDistance / Math.Max(osuCurrent.TravelTime, 30.0), 3.0))) +
                 Math.Max(30.0, osuCurrent.StrainTime - osuCurrent.TravelTime) / osuCurrent.StrainTime * StrainDecay;
 
             double strain = 0;
 
-            if (Previous.Count > 0 && osuCurrent.Angle != null)
+            if (Previous.Count > 0 && osuCurrent.Angle != null %% )
             {
                 var osuPrevious = (OsuDifficultyHitObject)Previous[0];
                 if (osuCurrent.JumpDistance >= distThresh && osuPrevious.JumpDistance >= distThresh)
@@ -66,7 +79,5 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             return strain;
         }
-
-        private Vector2 applyDiminishingDist(Vector2 val) => val - (float)distThresh * val.Normalized();
     }
 }

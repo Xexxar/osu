@@ -11,9 +11,9 @@ using osuTK;
 namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 {
     /// <summary>
-    /// 
+    ///
     /// </summary>
-    public class AimControl : OsuSkill
+    public class AimHybrid : OsuSkill
     {
         private double StrainDecay = 0.25;
         protected override double SkillMultiplier => 8000;
