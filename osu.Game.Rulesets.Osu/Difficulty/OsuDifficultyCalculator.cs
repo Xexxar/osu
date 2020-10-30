@@ -23,7 +23,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         private const double difficulty_multiplier = 0.0675;
         private const double star_rating_scale_factor = 1.485 * 3.0;
         private const double aim_star_factor = 1.1;
-        private const double speed_star_factor = 2.0;
+        private const double tapSpeed_star_factor = 2.0;
         private const double total_star_factor = 2.2;
 
         public OsuDifficultyCalculator(Ruleset ruleset, WorkingBeatmap beatmap)
@@ -52,61 +52,61 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double circles = beatmap.HitObjects.Count(h => h is HitCircle);
             double sliders = beatmap.HitObjects.Count(h => h is Slider);
 
-            var jumpAim = (OsuSkill)skills[0];
-            var streamAim = (OsuSkill)skills[1];
-            var stamina = (OsuSkill)skills[2];
-            var speed = (OsuSkill)skills[3];
-            var aimControl = (OsuSkill)skills[4];
-            var fingerControl = (OsuSkill)skills[5];
+            var aimSnap = (OsuSkill)skills[0];
+            var aimFlow = (OsuSkill)skills[1];
+            var tapTapStamina = (OsuSkill)skills[2];
+            var tapSpeed = (OsuSkill)skills[3];
+            var aimHybrid = (OsuSkill)skills[4];
+            var tapRhythm = (OsuSkill)skills[5];
 
-            IList<double> jumpAimComboSr = jumpAim.ComboStarRatings;
-            IList<double> jumpAimMissCounts = jumpAim.MissCounts;
+            IList<double> aimSnapComboSr = aimSnap.ComboStarRatings;
+            IList<double> aimSnapMissCounts = aimSnap.MissCounts;
 
-            IList<double> streamAimComboSr = streamAim.ComboStarRatings;
-            IList<double> streamAimMissCounts = streamAim.MissCounts;
+            IList<double> aimFlowComboSr = aimFlow.ComboStarRatings;
+            IList<double> aimFlowMissCounts = aimFlow.MissCounts;
 
-            IList<double> staminaComboSr = stamina.ComboStarRatings;
-            IList<double> staminaMissCounts = stamina.MissCounts;
+            IList<double> tapTapStaminaComboSr = tapTapStamina.ComboStarRatings;
+            IList<double> tapTapStaminaMissCounts = tapTapStamina.MissCounts;
 
-            IList<double> speedComboSr = speed.ComboStarRatings;
-            IList<double> speedMissCounts = speed.MissCounts;
+            IList<double> tapSpeedComboSr = tapSpeed.ComboStarRatings;
+            IList<double> tapSpeedMissCounts = tapSpeed.MissCounts;
 
-            IList<double> aimControlComboSr = aimControl.ComboStarRatings;
-            IList<double> aimControlMissCounts = aimControl.MissCounts;
+            IList<double> aimHybridComboSr = aimHybrid.ComboStarRatings;
+            IList<double> aimHybridMissCounts = aimHybrid.MissCounts;
 
-            IList<double> fingerControlComboSr = fingerControl.ComboStarRatings;
-            IList<double> fingerControlMissCounts = fingerControl.MissCounts;
+            IList<double> tapRhythmComboSr = tapRhythm.ComboStarRatings;
+            IList<double> tapRhythmMissCounts = tapRhythm.MissCounts;
 
             const double miss_sr_increment = OsuSkill.MISS_STAR_RATING_INCREMENT_MULTIPLIER;
             const double miss_sr_exponent = OsuSkill.MISS_STAR_RATING_INCREMENT_EXPONENT;
 
-            double jumpAimRating = jumpAimComboSr.Last();
-            double streamAimRating = streamAimComboSr.Last();
-            double staminaRating = staminaComboSr.Last();
-            double speedRating = speedComboSr.Last();
-            double aimControlRating = aimControlComboSr.Last();
-            double fingerControlRating = fingerControlComboSr.Last();
+            double aimSnapRating = aimSnapComboSr.Last();
+            double aimFlowRating = aimFlowComboSr.Last();
+            double tapTapStaminaRating = tapTapStaminaComboSr.Last();
+            double tapSpeedRating = tapSpeedComboSr.Last();
+            double aimHybridRating = aimHybridComboSr.Last();
+            double tapRhythmRating = tapRhythmComboSr.Last();
             double accuracyRating = calculateAccuracyRating(overralDifficulty, circles, sliders, totalHits);
 
             double totalAimRating = Math.Pow(
-                Math.Pow(PointsTransformation(jumpAimRating), aim_star_factor) +
-                Math.Pow(PointsTransformation(streamAimRating), aim_star_factor) +
-                Math.Pow(PointsTransformation(aimControlRating), aim_star_factor), 1.0 / aim_star_factor);
-            double totalSpeedRating = Math.Pow(
-                Math.Pow(PointsTransformation(staminaRating), speed_star_factor) +
-                Math.Pow(PointsTransformation(speedRating), speed_star_factor) +
-                Math.Pow(PointsTransformation(fingerControlRating), speed_star_factor), 1.0 / speed_star_factor);
+                Math.Pow(PointsTransformation(aimSnapRating), aim_star_factor) +
+                Math.Pow(PointsTransformation(aimFlowRating), aim_star_factor) +
+                Math.Pow(PointsTransformation(aimHybridRating), aim_star_factor), 1.0 / aim_star_factor);
+            double totalTapSpeedRating = Math.Pow(
+                Math.Pow(PointsTransformation(tapTapStaminaRating), tapSpeed_star_factor) +
+                Math.Pow(PointsTransformation(tapSpeedRating), tapSpeed_star_factor) +
+                Math.Pow(PointsTransformation(tapRhythmRating), tapSpeed_star_factor), 1.0 / tapSpeed_star_factor);
             double starRating = StarTransformation(star_rating_scale_factor * Math.Pow(
                 Math.Pow(totalAimRating, total_star_factor) +
-                Math.Pow(totalSpeedRating, total_star_factor) +
+                Math.Pow(totalTapSpeedRating, total_star_factor) +
                 Math.Pow(accuracyRating, total_star_factor), 1.0 / total_star_factor));
 
-            string values = "Jump Aim: " + Math.Round(jumpAimRating, 2) +
-            "\nStream Aim: " + Math.Round(streamAimRating, 2) +
-            "\nStamina: " + Math.Round(staminaRating, 2) +
-            "\nSpeed: " + Math.Round(speedRating, 2) +
-            "\nAim Control: " + Math.Round(aimControlRating, 2) +
-            "\nFinger Control: " + Math.Round(fingerControlRating, 2);
+            string values = "Jump Aim: " + Math.Round(aimSnapRating, 2) +
+            "\nStream Aim: " + Math.Round(aimFlowRating, 2) +
+            "\nTapStamina: " + Math.Round(tapTapStaminaRating, 2) +
+            "\nTapSpeed: " + Math.Round(tapSpeedRating, 2) +
+            "\nAim Control: " + Math.Round(aimHybridRating, 2) +
+            "\nFinger Control: " + Math.Round(tapRhythmRating, 2);
 
             using (StreamWriter outputFile = new StreamWriter(beatmap.BeatmapInfo.OnlineBeatmapID + "values.txt"))
                 outputFile.WriteLine(values);
@@ -115,7 +115,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             {
                 StarRating = starRating,
                 AimRating = StarTransformation(totalAimRating),
-                SpeedRating = StarTransformation(totalSpeedRating),
+                TapSpeedRating = StarTransformation(totalTapSpeedRating),
                 Mods = mods,
                 MissStarRatingIncrement = miss_sr_increment,
                 MissStarRatingExponent = miss_sr_exponent,
@@ -125,29 +125,29 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 countCircles = circles,
                 countSliders = sliders,
 
-                JumpAimStrain = jumpAimRating,
-                JumpAimComboStarRatings = jumpAimComboSr,
-                JumpAimMissCounts = jumpAimMissCounts,
+                AimSnapStrain = aimSnapRating,
+                AimSnapComboStarRatings = aimSnapComboSr,
+                AimSnapMissCounts = aimSnapMissCounts,
 
-                StreamAimStrain = streamAimRating,
-                StreamAimComboStarRatings = streamAimComboSr,
-                StreamAimMissCounts = streamAimMissCounts,
+                AimFlowStrain = aimFlowRating,
+                AimFlowComboStarRatings = aimFlowComboSr,
+                AimFlowMissCounts = aimFlowMissCounts,
 
-                StaminaStrain = staminaRating,
-                StaminaComboStarRatings = staminaComboSr,
-                StaminaMissCounts = staminaMissCounts,
+                TapStaminaStrain = tapTapStaminaRating,
+                TapStaminaComboStarRatings = tapTapStaminaComboSr,
+                TapStaminaMissCounts = tapTapStaminaMissCounts,
 
-                SpeedStrain = speedRating,
-                SpeedComboStarRatings = speedComboSr,
-                SpeedMissCounts = speedMissCounts,
+                TapSpeedStrain = tapSpeedRating,
+                TapSpeedComboStarRatings = tapSpeedComboSr,
+                TapSpeedMissCounts = tapSpeedMissCounts,
 
-                AimControlStrain = aimControlRating,
-                AimControlComboStarRatings = aimControlComboSr,
-                AimControlMissCounts = aimControlMissCounts,
+                AimHybridStrain = aimHybridRating,
+                AimHybridComboStarRatings = aimHybridComboSr,
+                AimHybridMissCounts = aimHybridMissCounts,
 
-                FingerControlStrain = fingerControlRating,
-                FingerControlComboStarRatings = fingerControlComboSr,
-                FingerControlMissCounts = fingerControlMissCounts,
+                TapRhythmStrain = tapRhythmRating,
+                TapRhythmComboStarRatings = tapRhythmComboSr,
+                TapRhythmMissCounts = tapRhythmMissCounts,
 
                 AccuracyStrain = StarTransformation(accuracyRating),
             };
@@ -169,12 +169,12 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
         protected override Skill[] CreateSkills(IBeatmap beatmap) => new Skill[]
         {
-            new JumpAim(),
-            new StreamAim(),
-            new Stamina(),
-            new Speed(),
-            new AimControl(),
-            new FingerControl()
+            new AimSnap(),
+            new AimFlow(),
+            new TapStamina(),
+            new TapSpeed(),
+            new AimHybrid(),
+            new TapRhythm()
         };
 
         protected override Mod[] DifficultyAdjustmentMods => new Mod[]

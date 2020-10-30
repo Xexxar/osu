@@ -12,31 +12,31 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         public double MissStarRatingExponent;
 
         public double AimRating;
-        public double SpeedRating;
+        public double TapSpeedRating;
 
-        public double JumpAimStrain;
-        public IList<double> JumpAimComboStarRatings;
-        public IList<double> JumpAimMissCounts;
+        public double AimSnapStrain;
+        public IList<double> AimSnapComboStarRatings;
+        public IList<double> AimSnapMissCounts;
 
-        public double StreamAimStrain;
-        public IList<double> StreamAimComboStarRatings;
-        public IList<double> StreamAimMissCounts;
+        public double AimFlowStrain;
+        public IList<double> AimFlowComboStarRatings;
+        public IList<double> AimFlowMissCounts;
 
-        public double StaminaStrain;
-        public IList<double> StaminaComboStarRatings;
-        public IList<double> StaminaMissCounts;
+        public double TapStaminaStrain;
+        public IList<double> TapStaminaComboStarRatings;
+        public IList<double> TapStaminaMissCounts;
 
-        public double SpeedStrain;
-        public IList<double> SpeedComboStarRatings;
-        public IList<double> SpeedMissCounts;
+        public double TapSpeedStrain;
+        public IList<double> TapSpeedComboStarRatings;
+        public IList<double> TapSpeedMissCounts;
 
-        public double AimControlStrain;
-        public IList<double> AimControlComboStarRatings;
-        public IList<double> AimControlMissCounts;
+        public double AimHybridStrain;
+        public IList<double> AimHybridComboStarRatings;
+        public IList<double> AimHybridMissCounts;
 
-        public double FingerControlStrain;
-        public IList<double> FingerControlComboStarRatings;
-        public IList<double> FingerControlMissCounts;
+        public double TapRhythmStrain;
+        public IList<double> TapRhythmComboStarRatings;
+        public IList<double> TapRhythmMissCounts;
 
         public double AccuracyStrain;
 

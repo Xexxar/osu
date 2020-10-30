@@ -11,7 +11,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// <summary>
     ///
     /// </summary>
-    public class FingerControl : OsuSkill
+    public class TapRhythm : OsuSkill
     {
         private double StrainDecay = 0.5;
         protected override double SkillMultiplier => 42;

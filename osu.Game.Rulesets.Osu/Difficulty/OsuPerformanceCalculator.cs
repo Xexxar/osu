@@ -33,7 +33,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         private int countMiss;
         private const double combo_weight = 0.5;
         private const double aim_pp_factor = 1.5f;
-        private const double speed_pp_factor = 1.5f;
+        private const double tapSpeed_pp_factor = 1.5f;
         private const double total_factor = 1.1f;
 
         public OsuPerformanceCalculator(Ruleset ruleset, DifficultyAttributes attributes, ScoreInfo score)
@@ -60,7 +60,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             // Custom multipliers for NoFail and SpunOut.
             double aim_multiplier = 1.07f;
-            double speed_multiplier = 1.0f;
+            double tapSpeed_multiplier = 1.0f;
             double total_multiplier = 1.2f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
 
             if (mods.Any(m => m is OsuModNoFail))
@@ -69,22 +69,22 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             if (mods.Any(m => m is OsuModSpunOut))
                 total_multiplier *= 0.95f;
 
-            double jumpAimValue = computeJumpAimValue(categoryRatings);
-            double streamAimValue = computeStreamAimValue(categoryRatings);
-            double staminaValue = computeStaminaValue(categoryRatings);
-            double speedValue = computeSpeedValue(categoryRatings);
-            double aimControlValue = computeAimControlValue(categoryRatings);
-            double fingerControlValue = computeFingerControlValue(categoryRatings);
+            double aimSnapValue = computeAimSnapValue(categoryRatings);
+            double aimFlowValue = computeAimFlowValue(categoryRatings);
+            double tapTapStaminaValue = computeTapStaminaValue(categoryRatings);
+            double tapSpeedValue = computeTapSpeedValue(categoryRatings);
+            double aimHybridValue = computeAimHybridValue(categoryRatings);
+            double tapRhythmValue = computeTapRhythmValue(categoryRatings);
             double accuracyValue = computeAccuracyValue(categoryRatings);
 
             double totalAimValue = aim_multiplier * Math.Pow(
-                Math.Pow(jumpAimValue, aim_pp_factor) +
-                Math.Pow(streamAimValue, aim_pp_factor) +
-                Math.Pow(aimControlValue, aim_pp_factor), 1.0f / aim_pp_factor);
-            double totalSpeedValue = speed_multiplier * Math.Pow(
-                Math.Pow(staminaValue, speed_pp_factor) +
-                Math.Pow(speedValue, speed_pp_factor) +
-                Math.Pow(fingerControlValue, speed_pp_factor), 1.0f / speed_pp_factor);
+                Math.Pow(aimSnapValue, aim_pp_factor) +
+                Math.Pow(aimFlowValue, aim_pp_factor) +
+                Math.Pow(aimHybridValue, aim_pp_factor), 1.0f / aim_pp_factor);
+            double totalTapSpeedValue = tapSpeed_multiplier * Math.Pow(
+                Math.Pow(tapTapStaminaValue, tapSpeed_pp_factor) +
+                Math.Pow(tapSpeedValue, tapSpeed_pp_factor) +
+                Math.Pow(tapRhythmValue, tapSpeed_pp_factor), 1.0f / tapSpeed_pp_factor);
 
             if (mods.Any(h => h is OsuModFlashlight))
             {
@@ -102,20 +102,20 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             double totalValue = total_multiplier * Math.Pow(
                 Math.Pow(totalAimValue, total_factor) +
-                Math.Pow(totalSpeedValue, total_factor) +
+                Math.Pow(totalTapSpeedValue, total_factor) +
                 Math.Pow(accuracyValue, total_factor), 1.0f / total_factor);
 
             if (categoryRatings != null)
             {
                 categoryRatings.Add("Total Star Rating", 0.0675f * (Math.Pow(300000.0f * totalValue, 1.0f / 3.0f) + 4.0f) / 5.0f);
-                categoryRatings.Add("Jump Aim", jumpAimValue);
-                categoryRatings.Add("Stream Aim", streamAimValue);
-                categoryRatings.Add("Stamina", staminaValue);
-                categoryRatings.Add("Speed", speedValue);
-                categoryRatings.Add("Aim Control", aimControlValue);
-                categoryRatings.Add("Finger Control", fingerControlValue);
+                categoryRatings.Add("Jump Aim", aimSnapValue);
+                categoryRatings.Add("Stream Aim", aimFlowValue);
+                categoryRatings.Add("TapStamina", tapTapStaminaValue);
+                categoryRatings.Add("TapSpeed", tapSpeedValue);
+                categoryRatings.Add("Aim Control", aimHybridValue);
+                categoryRatings.Add("Finger Control", tapRhythmValue);
                 categoryRatings.Add("Total Aim", totalAimValue);
-                categoryRatings.Add("Total Speed", totalSpeedValue);
+                categoryRatings.Add("Total TapSpeed", totalTapSpeedValue);
                 categoryRatings.Add("Accuracy", accuracyValue);
             }
 
@@ -197,16 +197,16 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             return missStarRating(sr, values.Count - 1) * (1 - t);
         }
 
-        private double computeJumpAimValue(Dictionary<string, double> categoryRatings = null)
+        private double computeAimSnapValue(Dictionary<string, double> categoryRatings = null)
         {
-            double jumpAimComboStarRating = interpComboStarRating(Attributes.JumpAimComboStarRatings, scoreMaxCombo, beatmapMaxCombo);
-            double jumpAimMissCountStarRating = interpMissCountStarRating(Attributes.JumpAimComboStarRatings.Last(), Attributes.JumpAimMissCounts, countMiss);
-            double rawJumpAim = Math.Pow(jumpAimComboStarRating, combo_weight) * Math.Pow(jumpAimMissCountStarRating, 1 - combo_weight);
+            double aimSnapComboStarRating = interpComboStarRating(Attributes.AimSnapComboStarRatings, scoreMaxCombo, beatmapMaxCombo);
+            double aimSnapMissCountStarRating = interpMissCountStarRating(Attributes.AimSnapComboStarRatings.Last(), Attributes.AimSnapMissCounts, countMiss);
+            double rawAimSnap = Math.Pow(aimSnapComboStarRating, combo_weight) * Math.Pow(aimSnapMissCountStarRating, 1 - combo_weight);
 
             if (mods.Any(m => m is OsuModTouchDevice))
-                rawJumpAim = Math.Pow(rawJumpAim, 0.8);
+                rawAimSnap = Math.Pow(rawAimSnap, 0.8);
 
-            double jumpAimValue = Math.Pow(5.0f * Math.Max(1.0f, rawJumpAim / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
+            double aimSnapValue = Math.Pow(5.0f * Math.Max(1.0f, rawAimSnap / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
             double approachRateFactor = 1.0f;
 
@@ -215,32 +215,32 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             else if (Attributes.ApproachRate < 9.0f)
                 approachRateFactor += 0.1f * (9.0f - Attributes.ApproachRate);
 
-            jumpAimValue *= approachRateFactor;
+            aimSnapValue *= approachRateFactor;
 
             // Scale the jump aim value with accuracy
             double accScale = (1.0f + 3.0f * accuracy) / 4.0f;
             double ODScale = 0.98f + Math.Pow(Attributes.OverallDifficulty, 2) / 2500;
-            jumpAimValue *= accScale * ODScale;
+            aimSnapValue *= accScale * ODScale;
 
             if (categoryRatings != null)
             {
-                categoryRatings.Add("Jump Aim Combo Stars", jumpAimComboStarRating);
-                categoryRatings.Add("Jump Aim True Stars", Attributes.JumpAimStrain);
+                categoryRatings.Add("Jump Aim Combo Stars", aimSnapComboStarRating);
+                categoryRatings.Add("Jump Aim True Stars", Attributes.AimSnapStrain);
             }
 
-            return jumpAimValue;
+            return aimSnapValue;
         }
 
-        private double computeStreamAimValue(Dictionary<string, double> categoryRatings = null)
+        private double computeAimFlowValue(Dictionary<string, double> categoryRatings = null)
         {
-            double streamAimComboStarRating = interpComboStarRating(Attributes.StreamAimComboStarRatings, scoreMaxCombo, beatmapMaxCombo);
-            double streamAimMissCountStarRating = interpMissCountStarRating(Attributes.StreamAimComboStarRatings.Last(), Attributes.StreamAimMissCounts, countMiss);
-            double rawStreamAim = Math.Pow(streamAimComboStarRating, combo_weight) * Math.Pow(streamAimMissCountStarRating, 1 - combo_weight);
+            double aimFlowComboStarRating = interpComboStarRating(Attributes.AimFlowComboStarRatings, scoreMaxCombo, beatmapMaxCombo);
+            double aimFlowMissCountStarRating = interpMissCountStarRating(Attributes.AimFlowComboStarRatings.Last(), Attributes.AimFlowMissCounts, countMiss);
+            double rawAimFlow = Math.Pow(aimFlowComboStarRating, combo_weight) * Math.Pow(aimFlowMissCountStarRating, 1 - combo_weight);
 
             if (mods.Any(m => m is OsuModTouchDevice))
-                rawStreamAim = Math.Pow(rawStreamAim, 1.25f);
+                rawAimFlow = Math.Pow(rawAimFlow, 1.25f);
 
-            double streamAimValue = Math.Pow(5.0f * Math.Max(1.0f, rawStreamAim / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
+            double aimFlowValue = Math.Pow(5.0f * Math.Max(1.0f, rawAimFlow / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
             double approachRateFactor = 1.0f;
             if (Attributes.ApproachRate > 10.33f)
@@ -248,36 +248,36 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             else if (Attributes.ApproachRate < 9.0f)
                 approachRateFactor += 0.1f * (9.0f - Attributes.ApproachRate);
 
-            streamAimValue *= approachRateFactor;
+            aimFlowValue *= approachRateFactor;
 
             // We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
             if (mods.Any(m => m is OsuModHidden))
-                streamAimValue *= 1.0f + 0.15f * (12.0f - Attributes.ApproachRate);
+                aimFlowValue *= 1.0f + 0.15f * (12.0f - Attributes.ApproachRate);
 
             // Scale the stream aim value with accuracy
             double accScale = (1.0f + 3.0f * accuracy) / 4.0f;
             double ODScale = 0.98f + Math.Pow(Attributes.OverallDifficulty, 2) / 2500;
-            streamAimValue *= accScale * ODScale;
+            aimFlowValue *= accScale * ODScale;
 
             if (categoryRatings != null)
             {
-                categoryRatings.Add("Stream Aim Combo Stars", streamAimComboStarRating);
-                categoryRatings.Add("Stream Aim True Stars", Attributes.StreamAimStrain);
+                categoryRatings.Add("Stream Aim Combo Stars", aimFlowComboStarRating);
+                categoryRatings.Add("Stream Aim True Stars", Attributes.AimFlowStrain);
             }
 
-            return streamAimValue;
+            return aimFlowValue;
         }
 
-        private double computeAimControlValue(Dictionary<string, double> categoryRatings = null)
+        private double computeAimHybridValue(Dictionary<string, double> categoryRatings = null)
         {
-            double aimControlComboStarRating = interpComboStarRating(Attributes.AimControlComboStarRatings, scoreMaxCombo, beatmapMaxCombo);
-            double aimControlMissCountStarRating = interpMissCountStarRating(Attributes.AimControlComboStarRatings.Last(), Attributes.AimControlMissCounts, countMiss);
-            double rawAimControl = Math.Pow(aimControlComboStarRating, combo_weight) * Math.Pow(aimControlMissCountStarRating, 1 - combo_weight);
+            double aimHybridComboStarRating = interpComboStarRating(Attributes.AimHybridComboStarRatings, scoreMaxCombo, beatmapMaxCombo);
+            double aimHybridMissCountStarRating = interpMissCountStarRating(Attributes.AimHybridComboStarRatings.Last(), Attributes.AimHybridMissCounts, countMiss);
+            double rawAimHybrid = Math.Pow(aimHybridComboStarRating, combo_weight) * Math.Pow(aimHybridMissCountStarRating, 1 - combo_weight);
 
             if (mods.Any(m => m is OsuModTouchDevice))
-                rawAimControl = Math.Pow(rawAimControl, 0.75f);
+                rawAimHybrid = Math.Pow(rawAimHybrid, 0.75f);
 
-            double aimControlValue = Math.Pow(5.0f * Math.Max(1.0f, rawAimControl / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
+            double aimHybridValue = Math.Pow(5.0f * Math.Max(1.0f, rawAimHybrid / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
             double approachRateFactor = 1.0f;
             if (Attributes.ApproachRate > 10.33f)
@@ -285,101 +285,101 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             else if (Attributes.ApproachRate < 9.0f)
                 approachRateFactor += 0.1f * (9.0f - Attributes.ApproachRate);
 
-            aimControlValue *= approachRateFactor;
+            aimHybridValue *= approachRateFactor;
 
             // We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
             if (mods.Any(m => m is OsuModHidden))
-                aimControlValue *= 1.0f + 0.05f * (12.0f - Attributes.ApproachRate);
+                aimHybridValue *= 1.0f + 0.05f * (12.0f - Attributes.ApproachRate);
 
             // Scale the control aim value with accuracy
             double accScale = (1.0f + 3.0f * accuracy) / 4.0f;
             double ODScale = 0.98f + Math.Pow(Attributes.OverallDifficulty, 2) / 2500;
-            aimControlValue *= accScale * ODScale;
+            aimHybridValue *= accScale * ODScale;
 
             if (categoryRatings != null)
             {
-                categoryRatings.Add("Aim Control Combo Stars", aimControlComboStarRating);
-                categoryRatings.Add("Aim Control True Stars", Attributes.AimControlStrain);
+                categoryRatings.Add("Aim Control Combo Stars", aimHybridComboStarRating);
+                categoryRatings.Add("Aim Control True Stars", Attributes.AimHybridStrain);
             }
 
-            return aimControlValue;
+            return aimHybridValue;
         }
 
-        private double computeStaminaValue(Dictionary<string, double> categoryRatings = null)
+        private double computeTapStaminaValue(Dictionary<string, double> categoryRatings = null)
         {
-            double staminaComboStarRating = interpComboStarRating(Attributes.StaminaComboStarRatings, scoreMaxCombo, beatmapMaxCombo);
-            double staminaMissCountStarRating = interpMissCountStarRating(Attributes.StaminaComboStarRatings.Last(), Attributes.StaminaMissCounts, countMiss);
-            double rawStamina = Math.Pow(staminaComboStarRating, combo_weight) * Math.Pow(staminaMissCountStarRating, 1 - combo_weight);
-            double staminaValue = Math.Pow(5.0f * Math.Max(1.0f, rawStamina / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
+            double tapTapStaminaComboStarRating = interpComboStarRating(Attributes.TapStaminaComboStarRatings, scoreMaxCombo, beatmapMaxCombo);
+            double tapTapStaminaMissCountStarRating = interpMissCountStarRating(Attributes.TapStaminaComboStarRatings.Last(), Attributes.TapStaminaMissCounts, countMiss);
+            double rawTapStamina = Math.Pow(tapTapStaminaComboStarRating, combo_weight) * Math.Pow(tapTapStaminaMissCountStarRating, 1 - combo_weight);
+            double tapTapStaminaValue = Math.Pow(5.0f * Math.Max(1.0f, rawTapStamina / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
-            // Scale the stamina value with accuracy
+            // Scale the tapTapStamina value with accuracy
             double accScale = 0.5f + Math.Pow(Math.Sin(2.5f * Math.PI * (accuracy - 0.8f)), 2.0f) / 2.0f;
             double ODScale = 0.5f + Math.Pow(Attributes.OverallDifficulty, 2) / 150;
-            staminaValue *= 0.1f + accScale * ODScale;
+            tapTapStaminaValue *= 0.1f + accScale * ODScale;
 
             if (categoryRatings != null)
             {
-                categoryRatings.Add("Stamina Combo Stars", staminaComboStarRating);
-                categoryRatings.Add("Stamina True Stars", Attributes.StaminaStrain);
+                categoryRatings.Add("TapStamina Combo Stars", tapTapStaminaComboStarRating);
+                categoryRatings.Add("TapStamina True Stars", Attributes.TapStaminaStrain);
             }
 
-            return staminaValue;
+            return tapTapStaminaValue;
         }
 
-        private double computeSpeedValue(Dictionary<string, double> categoryRatings = null)
+        private double computeTapSpeedValue(Dictionary<string, double> categoryRatings = null)
         {
-            double speedComboStarRating = interpComboStarRating(Attributes.SpeedComboStarRatings, scoreMaxCombo, beatmapMaxCombo);
-            double speedMissCountStarRating = interpMissCountStarRating(Attributes.SpeedComboStarRatings.Last(), Attributes.SpeedMissCounts, countMiss);
-            double rawSpeed = Math.Pow(speedComboStarRating, combo_weight) * Math.Pow(speedMissCountStarRating, 1 - combo_weight);
+            double tapSpeedComboStarRating = interpComboStarRating(Attributes.TapSpeedComboStarRatings, scoreMaxCombo, beatmapMaxCombo);
+            double tapSpeedMissCountStarRating = interpMissCountStarRating(Attributes.TapSpeedComboStarRatings.Last(), Attributes.TapSpeedMissCounts, countMiss);
+            double rawTapSpeed = Math.Pow(tapSpeedComboStarRating, combo_weight) * Math.Pow(tapSpeedMissCountStarRating, 1 - combo_weight);
 
             if (mods.Any(m => m is OsuModTouchDevice))
-                rawSpeed = Math.Pow(rawSpeed, 1.25f);
+                rawTapSpeed = Math.Pow(rawTapSpeed, 1.25f);
 
-            double speedValue = Math.Pow(5.0f * Math.Max(1.0f, rawSpeed / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
+            double tapSpeedValue = Math.Pow(5.0f * Math.Max(1.0f, rawTapSpeed / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
-            // Scale the speed value with accuracy
+            // Scale the tapSpeed value with accuracy
             double accScale = 0.5f + Math.Pow(Math.Sin(2.5f * Math.PI * (accuracy - 0.8f)), 2.0f) / 2.0f;
             double ODScale = 0.5f + Math.Pow(Attributes.OverallDifficulty, 2) / 150;
-            speedValue *= 0.1f + accScale * ODScale;
+            tapSpeedValue *= 0.1f + accScale * ODScale;
 
             if (categoryRatings != null)
             {
-                categoryRatings.Add("Speed Combo Stars", speedComboStarRating);
-                categoryRatings.Add("Speed True Stars", Attributes.SpeedStrain);
+                categoryRatings.Add("TapSpeed Combo Stars", tapSpeedComboStarRating);
+                categoryRatings.Add("TapSpeed True Stars", Attributes.TapSpeedStrain);
             }
 
-            return speedValue;
+            return tapSpeedValue;
         }
 
-        private double computeFingerControlValue(Dictionary<string, double> categoryRatings = null)
+        private double computeTapRhythmValue(Dictionary<string, double> categoryRatings = null)
         {
-            double fingerControlComboStarRating = interpComboStarRating(Attributes.FingerControlComboStarRatings, scoreMaxCombo, beatmapMaxCombo);
-            double fingerControlMissCountStarRating = interpMissCountStarRating(Attributes.FingerControlComboStarRatings.Last(), Attributes.FingerControlMissCounts, countMiss);
-            double rawFingerControl = Math.Pow(fingerControlComboStarRating, combo_weight) * Math.Pow(fingerControlMissCountStarRating, 1 - combo_weight);
+            double tapRhythmComboStarRating = interpComboStarRating(Attributes.TapRhythmComboStarRatings, scoreMaxCombo, beatmapMaxCombo);
+            double tapRhythmMissCountStarRating = interpMissCountStarRating(Attributes.TapRhythmComboStarRatings.Last(), Attributes.TapRhythmMissCounts, countMiss);
+            double rawTapRhythm = Math.Pow(tapRhythmComboStarRating, combo_weight) * Math.Pow(tapRhythmMissCountStarRating, 1 - combo_weight);
 
             if (mods.Any(m => m is OsuModTouchDevice))
-                rawFingerControl = Math.Pow(rawFingerControl, 1.25f);
+                rawTapRhythm = Math.Pow(rawTapRhythm, 1.25f);
 
-            double fingerControlValue = Math.Pow(5.0f * Math.Max(1.0f, rawFingerControl / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
+            double tapRhythmValue = Math.Pow(5.0f * Math.Max(1.0f, rawTapRhythm / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
             double approachRateFactor = 1.0f;
             if (Attributes.ApproachRate > 10.33f)
                 approachRateFactor += 0.3f * (Attributes.ApproachRate - 10.33f);
 
-            fingerControlValue *= approachRateFactor;
+            tapRhythmValue *= approachRateFactor;
 
             // Scale the finger control value with accuracy
             double accScale = 0.5f + Math.Pow(Math.Sin(2.5f * Math.PI * (accuracy - 0.8f)), 2.0f) / 2.0f;
             double ODScale = 0.5f + Math.Pow(Attributes.OverallDifficulty, 2) / 150;
-            fingerControlValue *= 0.1f + accScale * ODScale;
+            tapRhythmValue *= 0.1f + accScale * ODScale;
 
             if (categoryRatings != null)
             {
-                categoryRatings.Add("Finger Control Combo Stars", fingerControlComboStarRating);
-                categoryRatings.Add("Finger Control True Stars", Attributes.FingerControlStrain);
+                categoryRatings.Add("Finger Control Combo Stars", tapRhythmComboStarRating);
+                categoryRatings.Add("Finger Control True Stars", Attributes.TapRhythmStrain);
             }
 
-            return fingerControlValue;
+            return tapRhythmValue;
         }
 
         private double computeAccuracyValue(Dictionary<string, double> categoryRatings = null)
