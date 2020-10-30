@@ -50,7 +50,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             double strain = 0;
 
-            if (Previous.Count > 0 && osuCurrent.Angle != null %% )
+            if (Previous.Count > 0 && osuCurrent.Angle != null)
             {
                 var osuPrevious = (OsuDifficultyHitObject)Previous[0];
                 if (osuCurrent.JumpDistance >= distThresh && osuPrevious.JumpDistance >= distThresh)
@@ -79,5 +79,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             return strain;
         }
+
+        private Vector2 applyDiminishingDist(Vector2 val) => val - (float)distThresh * val.Normalized();
     }
 }
