@@ -62,6 +62,10 @@ namespace osu.Game.Rulesets.Difficulty.Skills
 
             Previous.Push(current);
         }
+        public virtual void Calculate(int? beatmapid)
+        {
+            SaveCurrentPeak();
+        }
 
         /// <summary>
         /// Saves the current peak strain level to the list of strain peaks, which will be used to calculate an overall difficulty.
