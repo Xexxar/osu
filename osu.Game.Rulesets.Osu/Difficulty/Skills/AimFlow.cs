@@ -11,7 +11,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// <summary>
     /// duhhh
     /// </summary>
-    public class StreamAim : OsuSkill
+    public class AimFlow : OsuSkill
     {
         private double StrainDecay = 0.25;
         private const double pi_over_2 = Math.PI / 2.0;

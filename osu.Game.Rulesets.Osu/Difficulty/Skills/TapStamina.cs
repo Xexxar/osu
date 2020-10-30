@@ -9,9 +9,9 @@ using osu.Game.Rulesets.Osu.Objects;
 namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 {
     /// <summary>
-    /// Represents the difficulty required to keep up with the note density and speed at which objects are needed to be tapped along with
+    /// Represents the difficulty required to keep up with the note density and tapSpeed at which objects are needed to be tapped along with
     /// </summary>
-    public class Stamina : OsuSkill
+    public class TapStamina : OsuSkill
     {
         private double StrainDecay = 1.0;
         protected override double SkillMultiplier => 4.45;
