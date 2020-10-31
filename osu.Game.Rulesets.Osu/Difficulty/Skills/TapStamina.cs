@@ -38,6 +38,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             double strain = 75.0 / osuCurrent.StrainTime;
 
+        //    if (repeatStrainCount == 1)
+        //          strain *= 2;
+
             return strain * Math.Pow(repeatStrainCount, 0.04);
         }
     }
