@@ -32,9 +32,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         private int countMeh;
         private int countMiss;
         private const double combo_weight = 0.5;
-        private const double aim_pp_factor = 1.5f;
+        private const double aim_pp_factor = 1.25f;
         private const double tapSpeed_pp_factor = 1.5f;
-        private const double total_factor = 1.1f;
+        private const double total_factor = 2f;
 
         public OsuPerformanceCalculator(Ruleset ruleset, DifficultyAttributes attributes, ScoreInfo score)
            : base(ruleset, attributes, score)
@@ -58,11 +58,12 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             if (mods.Any(m => !m.Ranked))
                 return 0;
 
-            // Custom multipliers for NoFail and SpunOut.
+
             double aim_multiplier = 1.07f;
             double tapSpeed_multiplier = 1.0f;
-            double total_multiplier = 1.2f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
+            double total_multiplier = 1.0f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
 
+            // Custom multipliers for NoFail and SpunOut.
             if (mods.Any(m => m is OsuModNoFail))
                 total_multiplier *= 0.90f;
 
@@ -102,8 +103,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             double totalValue = total_multiplier * Math.Pow(
                 Math.Pow(totalAimValue, total_factor) +
-                Math.Pow(totalTapSpeedValue, total_factor) +
-                Math.Pow(accuracyValue, total_factor), 1.0f / total_factor);
+                Math.Pow(totalTapSpeedValue, total_factor), 1.0f / total_factor);
 
             if (categoryRatings != null)
             {
@@ -213,7 +213,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             if (Attributes.ApproachRate > 10.33f)
                 approachRateFactor += 0.3f * (Attributes.ApproachRate - 10.33f);
             else if (Attributes.ApproachRate < 9.0f)
-                approachRateFactor += 0.1f * (9.0f - Attributes.ApproachRate);
+                approachRateFactor += 0.3f * (9.0f - Attributes.ApproachRate);
 
             aimSnapValue *= approachRateFactor;
 
@@ -238,7 +238,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             double approachRateFactor = 1.0f;
             if (Attributes.ApproachRate > 10.33f)
-                approachRateFactor += 0.3f * (Attributes.ApproachRate - 10.33f);
+                approachRateFactor += 0.1f * (Attributes.ApproachRate - 10.33f);
             else if (Attributes.ApproachRate < 9.0f)
                 approachRateFactor += 0.1f * (9.0f - Attributes.ApproachRate);
 
@@ -246,7 +246,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             // We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
             if (mods.Any(m => m is OsuModHidden))
-                aimFlowValue *= 1.0f + 0.15f * (12.0f - Attributes.ApproachRate);
+                aimFlowValue *= 1.0f + 0.1f * (12.0f - Attributes.ApproachRate);
 
             // Scale the stream aim value with accuracy
             double accScale = (1.0f + 3.0f * accuracy) / 4.0f;
@@ -269,9 +269,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             double approachRateFactor = 1.0f;
             if (Attributes.ApproachRate > 10.33f)
-                approachRateFactor += 0.3f * (Attributes.ApproachRate - 10.33f);
+                approachRateFactor += 0.2f * (Attributes.ApproachRate - 10.33f);
             else if (Attributes.ApproachRate < 9.0f)
-                approachRateFactor += 0.1f * (9.0f - Attributes.ApproachRate);
+                approachRateFactor += 0.2f * (9.0f - Attributes.ApproachRate);
 
             aimHybridValue *= approachRateFactor;
 

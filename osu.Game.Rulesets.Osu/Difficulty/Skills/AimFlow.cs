@@ -54,8 +54,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 // this is where we use an ERF function to derive a probability.
                 var flowiness = 0.5 - 0.5 * erf((-distributionMean + x) / (25 * Math.Sqrt(2)));
 
-                Console.WriteLine((osuCurrentObj.StartTime / 1000).ToString() + " " + osuCurrentObj.JumpDistance.ToString());
-
                 // Create velocity vectors, scale prior by prevMultiplier
                 var prevVector = Vector2.Multiply(Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime), prevMultiplier);
                 var currVector = Vector2.Divide(osuCurrentObj.DistanceVector, (float)osuCurrentObj.StrainTime);

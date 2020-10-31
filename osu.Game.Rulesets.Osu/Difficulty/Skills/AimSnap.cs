@@ -15,7 +15,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     public class AimSnap : OsuSkill
     {
         private double StrainDecay = 0.2;
-        private const float prevMultiplier = 0.33f;
+        private const float prevMultiplier = 0.45f;
 
         protected override double SkillMultiplier => 2500;
         protected override double StrainDecayBase => StrainDecay;
@@ -53,8 +53,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
                 // this is where we use an ERF function to derive a probability.
                 var snappiness = 0.5 * erf((-distributionMean + x) / (25 * Math.Sqrt(2))) + 0.5;
-
-                Console.WriteLine(snappiness);
 
                 // Create velocity vectors, scale prior by prevMultiplier
                 var prevVector = Vector2.Multiply(Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime), prevMultiplier);

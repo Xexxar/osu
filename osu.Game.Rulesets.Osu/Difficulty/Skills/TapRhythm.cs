@@ -29,7 +29,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             var osuCurrent = (OsuDifficultyHitObject)current;
             double strainTime = Math.Max(osuCurrent.DeltaTime, 46.875);
-            StrainDecay = Math.Pow(0.9, 1000.0 / Math.Min(strainTime, 375.0));
+            StrainDecay = Math.Pow(0.925, 1000.0 / Math.Min(strainTime, 375.0));
 
             double strain = Math.Pow(75.0 / strainTime, 1.5);
 
