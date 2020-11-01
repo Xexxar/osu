@@ -5,6 +5,7 @@ using osuTK;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
+using osu.Framework.Graphics.Effects;
 using osu.Framework.Graphics.Shapes;
 using osu.Game.Graphics;
 using osu.Game.Rulesets.Objects.Drawables;
@@ -17,20 +18,20 @@ namespace osu.Game.Rulesets.Taiko.UI
         public override bool RemoveWhenNotAlive => true;
 
         public readonly DrawableHitObject JudgedObject;
+        private readonly HitType type;
 
-        private readonly bool isRim;
-
-        public KiaiHitExplosion(DrawableHitObject judgedObject, bool isRim)
+        public KiaiHitExplosion(DrawableHitObject judgedObject, HitType type)
         {
-            this.isRim = isRim;
-
             JudgedObject = judgedObject;
+            this.type = type;
 
             Anchor = Anchor.CentreLeft;
             Origin = Anchor.Centre;
 
             RelativeSizeAxes = Axes.Both;
             Size = new Vector2(TaikoHitObject.DEFAULT_SIZE, 1);
+
+            Blending = BlendingParameters.Additive;
 
             Masking = true;
             Alpha = 0.25f;
@@ -52,7 +53,7 @@ namespace osu.Game.Rulesets.Taiko.UI
             EdgeEffect = new EdgeEffectParameters
             {
                 Type = EdgeEffectType.Glow,
-                Colour = isRim ? colours.BlueDarker : colours.PinkDarker,
+                Colour = type == HitType.Rim ? colours.BlueDarker : colours.PinkDarker,
                 Radius = 60,
             };
         }

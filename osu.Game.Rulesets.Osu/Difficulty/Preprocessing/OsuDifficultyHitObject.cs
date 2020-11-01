@@ -12,9 +12,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
 {
     public class OsuDifficultyHitObject : DifficultyHitObject
     {
-        private const int normalized_radius = 52;
+        private const double normalized_diameter = 1;
 
-        protected new OsuHitObject BaseObject => (OsuHitObject)base.BaseObject;
+        public new OsuHitObject BaseObject => (OsuHitObject)base.BaseObject;
+
+        /// <summary>
+        ///  Distance from the end position of the previous <see cref="OsuDifficultyHitObject"/> to the start position of this <see cref="OsuDifficultyHitObject"/>.
+        /// </summary>
+        public Vector2 DistanceVector { get; private set; }
 
         /// <summary>
         /// Normalized distance from the end position of the previous <see cref="OsuDifficultyHitObject"/> to the start position of this <see cref="OsuDifficultyHitObject"/>.
@@ -25,6 +30,16 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
         /// Normalized distance between the start and end position of the previous <see cref="OsuDifficultyHitObject"/>.
         /// </summary>
         public double TravelDistance { get; private set; }
+
+        /// <summary>
+        /// The time given to go through the normalized distance between the start and end position of the previous <see cref="OsuDifficultyHitObject"/>.
+        /// </summary>
+        public double TravelTime { get; private set; }
+
+        /// <summary>
+        /// The time given to go between the start and end position of the previous <see cref="OsuDifficultyHitObject"/>.
+        /// </summary>
+        public double TravelDuration { get; private set; }
 
         /// <summary>
         /// Angle the player has to take to hit this <see cref="OsuDifficultyHitObject"/>.
@@ -46,19 +61,20 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
             this.lastLastObject = (OsuHitObject)lastLastObject;
             this.lastObject = (OsuHitObject)lastObject;
 
-            setDistances();
+            setDistances(clockRate);
 
             // Every strain interval is hard capped at the equivalent of 375 BPM streaming speed as a safety measure
             StrainTime = Math.Max(50, DeltaTime);
+            TravelTime = Math.Max(50, TravelTime);
         }
 
-        private void setDistances()
+        private void setDistances(double clockRate)
         {
             // We will scale distances by this factor, so we can assume a uniform CircleSize among beatmaps.
-            float scalingFactor = normalized_radius / (float)BaseObject.Radius;
+            float scalingFactor = (float)normalized_diameter / (2 * (float)BaseObject.Radius);
             if (BaseObject.Radius < 30)
             {
-                float smallCircleBonus = Math.Min(30 - (float)BaseObject.Radius, 5) / 50;
+                float smallCircleBonus = (30 - (float)BaseObject.Radius) / 50;
                 scalingFactor *= 1 + smallCircleBonus;
             }
 
@@ -66,13 +82,18 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
             {
                 computeSliderCursorPosition(lastSlider);
                 TravelDistance = lastSlider.LazyTravelDistance * scalingFactor;
+                TravelTime = lastSlider.LazyTravelTime / clockRate;
+                TravelDuration = lastSlider.Duration / clockRate;
             }
 
             Vector2 lastCursorPosition = getEndCursorPosition(lastObject);
 
             // Don't need to jump to reach spinners
             if (!(BaseObject is Spinner))
-                JumpDistance = (BaseObject.StackedPosition * scalingFactor - lastCursorPosition * scalingFactor).Length;
+            {
+                DistanceVector = (BaseObject.StackedPosition * scalingFactor - lastCursorPosition * scalingFactor);
+                JumpDistance = DistanceVector.Length;
+            }
 
             if (lastLastObject != null)
             {
@@ -114,7 +135,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
                     dist -= approxFollowCircleRadius;
                     slider.LazyEndPosition += diff * dist;
                     slider.LazyTravelDistance += dist;
+                    slider.LazyTravelTime = t - slider.StartTime;
                 }
+                if (t != slider.TailCircle.StartTime)
+                    slider.LazyTravelTime = t - slider.StartTime;
             });
 
             // Skip the head circle

@@ -1,15 +1,18 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using Humanizer;
 using osu.Framework.Allocation;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
+using osu.Framework.Graphics.UserInterface;
 using osu.Framework.Screens;
 using osu.Game.Graphics;
-using osu.Game.Graphics.Sprites;
 using osu.Game.Graphics.UserInterface;
-using osu.Game.Overlays.SearchableList;
+using osu.Game.Graphics.Sprites;
+using osu.Game.Overlays;
 using osuTK;
 using osuTK.Graphics;
 
@@ -17,87 +20,110 @@ namespace osu.Game.Screens.Multi
 {
     public class Header : Container
     {
-        public const float HEIGHT = 121;
-
-        private readonly OsuSpriteText screenType;
-        private readonly HeaderBreadcrumbControl breadcrumbs;
+        public const float HEIGHT = 80;
 
         public Header(ScreenStack stack)
         {
             RelativeSizeAxes = Axes.X;
             Height = HEIGHT;
 
+            HeaderBreadcrumbControl breadcrumbs;
+            MultiHeaderTitle title;
+
             Children = new Drawable[]
             {
                 new Box
                 {
                     RelativeSizeAxes = Axes.Both,
-                    Colour = OsuColour.FromHex(@"2f2043"),
+                    Colour = Color4Extensions.FromHex(@"#1f1921"),
                 },
                 new Container
                 {
+                    Anchor = Anchor.CentreLeft,
+                    Origin = Anchor.CentreLeft,
                     RelativeSizeAxes = Axes.Both,
-                    Padding = new MarginPadding { Horizontal = SearchableListOverlay.WIDTH_PADDING + OsuScreen.HORIZONTAL_OVERFLOW_PADDING },
+                    Padding = new MarginPadding { Left = WaveOverlayContainer.WIDTH_PADDING + OsuScreen.HORIZONTAL_OVERFLOW_PADDING },
                     Children = new Drawable[]
                     {
-                        new FillFlowContainer
+                        title = new MultiHeaderTitle
                         {
                             Anchor = Anchor.CentreLeft,
                             Origin = Anchor.BottomLeft,
-                            Position = new Vector2(-35f, 5f),
-                            AutoSizeAxes = Axes.Both,
-                            Direction = FillDirection.Horizontal,
-                            Spacing = new Vector2(10f, 0f),
-                            Children = new Drawable[]
-                            {
-                                new SpriteIcon
-                                {
-                                    Size = new Vector2(25),
-                                    Icon = FontAwesome.fa_osu_multi,
-                                },
-                                new FillFlowContainer
-                                {
-                                    AutoSizeAxes = Axes.Both,
-                                    Direction = FillDirection.Horizontal,
-                                    Children = new[]
-                                    {
-                                        new OsuSpriteText
-                                        {
-                                            Text = "multiplayer ",
-                                            Font = OsuFont.GetFont(size: 25)
-                                        },
-                                        screenType = new OsuSpriteText
-                                        {
-                                            Font = OsuFont.GetFont(weight: FontWeight.Light, size: 25)
-                                        },
-                                    },
-                                },
-                            },
                         },
                         breadcrumbs = new HeaderBreadcrumbControl(stack)
                         {
                             Anchor = Anchor.BottomLeft,
-                            Origin = Anchor.BottomLeft,
-                            RelativeSizeAxes = Axes.X,
-                        },
+                            Origin = Anchor.BottomLeft
+                        }
                     },
                 },
             };
 
-            breadcrumbs.Current.ValueChanged += scren =>
+            breadcrumbs.Current.ValueChanged += screen =>
             {
-                if (scren.NewValue is IMultiplayerSubScreen multiScreen)
-                    screenType.Text = multiScreen.ShortTitle.ToLowerInvariant();
+                if (screen.NewValue is IMultiplayerSubScreen multiScreen)
+                    title.Screen = multiScreen;
             };
 
             breadcrumbs.Current.TriggerChange();
         }
 
-        [BackgroundDependencyLoader]
-        private void load(OsuColour colours)
+        private class MultiHeaderTitle : CompositeDrawable
         {
-            screenType.Colour = colours.Yellow;
-            breadcrumbs.StripColour = colours.Green;
+            private const float spacing = 6;
+
+            private readonly OsuSpriteText dot;
+            private readonly OsuSpriteText pageTitle;
+
+            public IMultiplayerSubScreen Screen
+            {
+                set => pageTitle.Text = value.ShortTitle.Titleize();
+            }
+
+            public MultiHeaderTitle()
+            {
+                AutoSizeAxes = Axes.Both;
+
+                InternalChildren = new Drawable[]
+                {
+                    new FillFlowContainer
+                    {
+                        AutoSizeAxes = Axes.Both,
+                        Spacing = new Vector2(spacing, 0),
+                        Direction = FillDirection.Horizontal,
+                        Children = new Drawable[]
+                        {
+                            new OsuSpriteText
+                            {
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Font = OsuFont.GetFont(size: 24),
+                                Text = "Multiplayer"
+                            },
+                            dot = new OsuSpriteText
+                            {
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Font = OsuFont.GetFont(size: 24),
+                                Text = "·"
+                            },
+                            pageTitle = new OsuSpriteText
+                            {
+                                Anchor = Anchor.CentreLeft,
+                                Origin = Anchor.CentreLeft,
+                                Font = OsuFont.GetFont(size: 24),
+                                Text = "Lounge"
+                            }
+                        }
+                    },
+                };
+            }
+
+            [BackgroundDependencyLoader]
+            private void load(OsuColour colours)
+            {
+                pageTitle.Colour = dot.Colour = colours.Yellow;
+            }
         }
 
         private class HeaderBreadcrumbControl : ScreenBreadcrumbControl
@@ -105,12 +131,28 @@ namespace osu.Game.Screens.Multi
             public HeaderBreadcrumbControl(ScreenStack stack)
                 : base(stack)
             {
+                RelativeSizeAxes = Axes.X;
+                StripColour = Color4.Transparent;
             }
 
             protected override void LoadComplete()
             {
                 base.LoadComplete();
-                AccentColour = Color4.White;
+                AccentColour = Color4Extensions.FromHex("#e35c99");
+            }
+
+            protected override TabItem<IScreen> CreateTabItem(IScreen value) => new HeaderBreadcrumbTabItem(value)
+            {
+                AccentColour = AccentColour
+            };
+
+            private class HeaderBreadcrumbTabItem : BreadcrumbTabItem
+            {
+                public HeaderBreadcrumbTabItem(IScreen value)
+                    : base(value)
+                {
+                    Bar.Colour = Color4.Transparent;
+                }
             }
         }
     }

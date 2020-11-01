@@ -1,11 +1,11 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System.Linq;
 using osu.Framework.Allocation;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Beatmaps.Drawables;
-using osu.Game.Online.Multiplayer;
 using osuTK;
 
 namespace osu.Game.Screens.Multi.Components
@@ -15,7 +15,7 @@ namespace osu.Game.Screens.Multi.Components
         private const float height = 30;
         private const float transition_duration = 100;
 
-        private Container rulesetContainer;
+        private Container drawableRuleset;
 
         public ModeTypeInfo()
         {
@@ -35,7 +35,7 @@ namespace osu.Game.Screens.Multi.Components
                 LayoutDuration = 100,
                 Children = new[]
                 {
-                    rulesetContainer = new Container
+                    drawableRuleset = new Container
                     {
                         AutoSizeAxes = Axes.Both,
                     },
@@ -46,20 +46,24 @@ namespace osu.Game.Screens.Multi.Components
                 },
             };
 
-            CurrentItem.BindValueChanged(item => updateBeatmap(item.NewValue), true);
-
             Type.BindValueChanged(type => gameTypeContainer.Child = new DrawableGameType(type.NewValue) { Size = new Vector2(height) }, true);
+
+            Playlist.CollectionChanged += (_, __) => updateBeatmap();
+
+            updateBeatmap();
         }
 
-        private void updateBeatmap(PlaylistItem item)
+        private void updateBeatmap()
         {
+            var item = Playlist.FirstOrDefault();
+
             if (item?.Beatmap != null)
             {
-                rulesetContainer.FadeIn(transition_duration);
-                rulesetContainer.Child = new DifficultyIcon(item.Beatmap, item.Ruleset) { Size = new Vector2(height) };
+                drawableRuleset.FadeIn(transition_duration);
+                drawableRuleset.Child = new DifficultyIcon(item.Beatmap.Value, item.Ruleset.Value, item.RequiredMods) { Size = new Vector2(height) };
             }
             else
-                rulesetContainer.FadeOut(transition_duration);
+                drawableRuleset.FadeOut(transition_duration);
         }
     }
 }

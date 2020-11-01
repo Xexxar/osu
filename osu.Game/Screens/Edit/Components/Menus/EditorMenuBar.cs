@@ -3,6 +3,7 @@
 
 using osu.Framework.Allocation;
 using osu.Framework.Bindables;
+using osu.Framework.Extensions.Color4Extensions;
 using osu.Framework.Graphics;
 using osu.Framework.Graphics.Containers;
 using osu.Framework.Graphics.Shapes;
@@ -26,7 +27,7 @@ namespace osu.Game.Screens.Edit.Components.Menus
 
             MaskingContainer.CornerRadius = 0;
             ItemsContainer.Padding = new MarginPadding { Left = 100 };
-            BackgroundColour = OsuColour.FromHex("111");
+            BackgroundColour = Color4Extensions.FromHex("111");
 
             ScreenSelectionTabControl tabControl;
             AddRangeInternal(new Drawable[]
@@ -175,6 +176,7 @@ namespace osu.Game.Screens.Edit.Components.Menus
                 {
                     if (Item is EditorMenuItemSpacer)
                         return true;
+
                     return base.OnHover(e);
                 }
 
@@ -182,6 +184,7 @@ namespace osu.Game.Screens.Edit.Components.Menus
                 {
                     if (Item is EditorMenuItemSpacer)
                         return true;
+
                     return base.OnClick(e);
                 }
             }

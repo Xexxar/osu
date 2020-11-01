@@ -10,7 +10,6 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Graphics.Containers;
-using osu.Game.Beatmaps;
 using osu.Game.Rulesets.Mods;
 using osuTK;
 
@@ -31,9 +30,28 @@ namespace osu.Game.Rulesets.UI
         public Func<Vector2, Vector2> GamefieldToScreenSpace => HitObjectContainer.ToScreenSpace;
 
         /// <summary>
+        /// A function that converts screen space coordinates to gamefield.
+        /// </summary>
+        public Func<Vector2, Vector2> ScreenSpaceToGamefield => HitObjectContainer.ToLocalSpace;
+
+        /// <summary>
         /// All the <see cref="DrawableHitObject"/>s contained in this <see cref="Playfield"/> and all <see cref="NestedPlayfields"/>.
         /// </summary>
-        public IEnumerable<DrawableHitObject> AllHitObjects => HitObjectContainer?.Objects.Concat(NestedPlayfields.SelectMany(p => p.AllHitObjects)) ?? Enumerable.Empty<DrawableHitObject>();
+        public IEnumerable<DrawableHitObject> AllHitObjects
+        {
+            get
+            {
+                if (HitObjectContainer == null)
+                    return Enumerable.Empty<DrawableHitObject>();
+
+                var enumerable = HitObjectContainer.Objects;
+
+                if (nestedPlayfields.IsValueCreated)
+                    enumerable = enumerable.Concat(NestedPlayfields.SelectMany(p => p.AllHitObjects));
+
+                return enumerable;
+            }
+        }
 
         /// <summary>
         /// All <see cref="Playfield"/>s nested inside this <see cref="Playfield"/>.
@@ -57,12 +75,21 @@ namespace osu.Game.Rulesets.UI
             hitObjectContainerLazy = new Lazy<HitObjectContainer>(CreateHitObjectContainer);
         }
 
-        private WorkingBeatmap beatmap;
+        [Resolved(CanBeNull = true)]
+        private IReadOnlyList<Mod> mods { get; set; }
 
         [BackgroundDependencyLoader]
-        private void load(IBindable<WorkingBeatmap> beatmap)
+        private void load()
         {
-            this.beatmap = beatmap.Value;
+            Cursor = CreateCursor();
+
+            if (Cursor != null)
+            {
+                // initial showing of the cursor will be handed by MenuCursorContainer (via DrawableRuleset's IProvideCursor implementation).
+                Cursor.Hide();
+
+                AddInternal(Cursor);
+            }
         }
 
         /// <summary>
@@ -81,6 +108,20 @@ namespace osu.Game.Rulesets.UI
         /// </summary>
         /// <param name="h">The DrawableHitObject to remove.</param>
         public virtual bool Remove(DrawableHitObject h) => HitObjectContainer.Remove(h);
+
+        /// <summary>
+        /// The cursor currently being used by this <see cref="Playfield"/>. May be null if no cursor is provided.
+        /// </summary>
+        public GameplayCursorContainer Cursor { get; private set; }
+
+        /// <summary>
+        /// Provide a cursor which is to be used for gameplay.
+        /// </summary>
+        /// <remarks>
+        /// The default provided cursor is invisible when inside the bounds of the <see cref="Playfield"/>.
+        /// </remarks>
+        /// <returns>The cursor, or null to show the menu cursor.</returns>
+        protected virtual GameplayCursorContainer CreateCursor() => new InvisibleCursorContainer();
 
         /// <summary>
         /// Registers a <see cref="Playfield"/> as a nested <see cref="Playfield"/>.
@@ -106,15 +147,28 @@ namespace osu.Game.Rulesets.UI
         {
             base.Update();
 
-            if (beatmap != null)
-                foreach (var mod in beatmap.Mods.Value)
+            if (mods != null)
+            {
+                foreach (var mod in mods)
+                {
                     if (mod is IUpdatableByPlayfield updatable)
                         updatable.Update(this);
+                }
+            }
         }
 
         /// <summary>
         /// Creates the container that will be used to contain the <see cref="DrawableHitObject"/>s.
         /// </summary>
         protected virtual HitObjectContainer CreateHitObjectContainer() => new HitObjectContainer();
+
+        public class InvisibleCursorContainer : GameplayCursorContainer
+        {
+            protected override Drawable CreateCursor() => new InvisibleCursor();
+
+            private class InvisibleCursor : Drawable
+            {
+            }
+        }
     }
 }

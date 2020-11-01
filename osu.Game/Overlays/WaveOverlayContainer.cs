@@ -14,6 +14,10 @@ namespace osu.Game.Overlays
         protected override bool BlockNonPositionalInput => true;
         protected override Container<Drawable> Content => Waves;
 
+        public const float WIDTH_PADDING = 80;
+
+        protected override bool StartHidden => true;
+
         protected WaveOverlayContainer()
         {
             AddInternal(Waves = new WaveContainer
@@ -25,13 +29,17 @@ namespace osu.Game.Overlays
         protected override void PopIn()
         {
             base.PopIn();
+
             Waves.Show();
+            this.FadeIn(100, Easing.OutQuint);
         }
 
         protected override void PopOut()
         {
             base.PopOut();
+
             Waves.Hide();
+            this.FadeOut(WaveContainer.DISAPPEAR_DURATION, Easing.InQuint);
         }
     }
 }

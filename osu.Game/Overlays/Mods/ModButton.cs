@@ -80,7 +80,8 @@ namespace osu.Game.Overlays.Mods
                 foregroundIcon.RotateTo(rotate_angle * direction, mod_switch_duration, mod_switch_easing);
                 backgroundIcon.RotateTo(-rotate_angle * direction, mod_switch_duration, mod_switch_easing);
 
-                backgroundIcon.Icon = modAfter.Icon;
+                backgroundIcon.Mod = modAfter;
+
                 using (BeginDelayedSequence(mod_switch_duration, true))
                 {
                     foregroundIcon
@@ -95,7 +96,7 @@ namespace osu.Game.Overlays.Mods
                 }
             }
 
-            foregroundIcon.Highlighted = Selected;
+            foregroundIcon.Selected.Value = Selected;
 
             SelectionChanged?.Invoke(SelectedMod);
             return true;
@@ -107,10 +108,11 @@ namespace osu.Game.Overlays.Mods
 
         public Color4 SelectedColour
         {
-            get { return selectedColour; }
+            get => selectedColour;
             set
             {
                 if (value == selectedColour) return;
+
                 selectedColour = value;
                 if (Selected) foregroundIcon.Colour = value;
             }
@@ -121,7 +123,7 @@ namespace osu.Game.Overlays.Mods
 
         public Mod Mod
         {
-            get { return mod; }
+            get => mod;
             set
             {
                 mod = value;
@@ -138,6 +140,7 @@ namespace osu.Game.Overlays.Mods
                 }
 
                 createIcons();
+
                 if (Mods.Length > 0)
                 {
                     displayMod(Mods[0]);
@@ -155,7 +158,7 @@ namespace osu.Game.Overlays.Mods
             return base.OnMouseDown(e);
         }
 
-        protected override bool OnMouseUp(MouseUpEvent e)
+        protected override void OnMouseUp(MouseUpEvent e)
         {
             scaleContainer.ScaleTo(1, 500, Easing.OutElastic);
 
@@ -164,14 +167,16 @@ namespace osu.Game.Overlays.Mods
             {
                 switch (e.Button)
                 {
-                    case MouseButton.Left:
-                        SelectNext(1);
-                        break;
                     case MouseButton.Right:
                         SelectNext(-1);
                         break;
                 }
             }
+        }
+
+        protected override bool OnClick(ClickEvent e)
+        {
+            SelectNext(1);
 
             return true;
         }
@@ -190,8 +195,10 @@ namespace osu.Game.Overlays.Mods
                 start = Mods.Length - 1;
 
             for (int i = start; i < Mods.Length && i >= 0; i += direction)
+            {
                 if (SelectAt(i))
                     return;
+            }
 
             Deselect();
         }
@@ -209,8 +216,8 @@ namespace osu.Game.Overlays.Mods
         private void displayMod(Mod mod)
         {
             if (backgroundIcon != null)
-                backgroundIcon.Icon = foregroundIcon.Icon;
-            foregroundIcon.Icon = mod.Icon;
+                backgroundIcon.Mod = foregroundIcon.Mod;
+            foregroundIcon.Mod = mod;
             text.Text = mod.Name;
             Colour = mod.HasImplementation ? Color4.White : Color4.Gray;
         }
@@ -218,6 +225,7 @@ namespace osu.Game.Overlays.Mods
         private void createIcons()
         {
             iconsContainer.Clear();
+
             if (Mods.Length > 1)
             {
                 iconsContainer.AddRange(new[]
@@ -278,7 +286,7 @@ namespace osu.Game.Overlays.Mods
                     Anchor = Anchor.TopCentre,
                     Font = OsuFont.GetFont(size: 18)
                 },
-                new HoverClickSounds()
+                new HoverClickSounds(buttons: new[] { MouseButton.Left, MouseButton.Right })
             };
 
             Mod = mod;

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using osu.Game.Configuration;
 using osu.Game.Database;
 
 namespace osu.Game.Skinning
@@ -19,14 +20,22 @@ namespace osu.Game.Skinning
 
         public List<SkinFileInfo> Files { get; set; }
 
+        public List<DatabasedSetting> Settings { get; set; }
+
         public bool DeletePending { get; set; }
 
-        public string FullName => $"\"{Name}\" by {Creator}";
-
-        public static SkinInfo Default { get; } = new SkinInfo { Name = "osu!lazer", Creator = "team osu!" };
+        public static SkinInfo Default { get; } = new SkinInfo
+        {
+            Name = "osu!lazer",
+            Creator = "team osu!"
+        };
 
         public bool Equals(SkinInfo other) => other != null && ID == other.ID;
 
-        public override string ToString() => FullName;
+        public override string ToString()
+        {
+            string author = Creator == null ? string.Empty : $"({Creator})";
+            return $"{Name} {author}".Trim();
+        }
     }
 }
