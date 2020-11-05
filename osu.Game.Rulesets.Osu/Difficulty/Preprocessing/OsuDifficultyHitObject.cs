@@ -57,6 +57,11 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
         /// </summary>
         public readonly OsuDifficultyHitObjectRhythm Rhythm;
 
+        /// <summary>
+        /// The rhythm required to hit this hit object, using the previous previous sliderend instead of clickable object.
+        /// </summary>
+        public readonly OsuDifficultyHitObjectRhythm SliderRhythm;
+
         private readonly OsuHitObject lastLastObject;
         private readonly OsuHitObject lastObject;
 
@@ -73,7 +78,15 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
             TravelTime = Math.Max(50, TravelTime);
 
             if (lastLastObject != null) {
-                Rhythm = getClosestRhythm(lastObject, lastLastObject, clockRate);
+                Rhythm = getClosestRhythm(lastObject.StartTime, lastLastObject.StartTime, clockRate);
+                if (lastObject is Slider) {
+                    Slider sliderLastObject = (Slider)lastObject;
+                    SliderRhythm = getClosestRhythm(lastObject.StartTime, sliderLastObject.EndTime, clockRate);
+                }
+                else if (lastLastObject is Slider) {
+                    Slider sliderLastLastObject = (Slider)lastLastObject;
+                    SliderRhythm = getClosestRhythm(lastObject.StartTime, sliderLastLastObject.EndTime, clockRate);
+                }
             }
         }
 
@@ -176,25 +189,25 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
         private static readonly OsuDifficultyHitObjectRhythm[] common_rhythms =
         {
             new OsuDifficultyHitObjectRhythm(1, 1, 0.0),
-            new OsuDifficultyHitObjectRhythm(2, 1, 0.05),
-            new OsuDifficultyHitObjectRhythm(1, 2, 0.1),
-            new OsuDifficultyHitObjectRhythm(3, 1, 0.3),
+            new OsuDifficultyHitObjectRhythm(2, 1, 0.25),
+            new OsuDifficultyHitObjectRhythm(1, 2, 0.35),
+            new OsuDifficultyHitObjectRhythm(3, 1, 0.2),
             new OsuDifficultyHitObjectRhythm(1, 3, 0.35),
             new OsuDifficultyHitObjectRhythm(3, 2, 0.6),
-            new OsuDifficultyHitObjectRhythm(2, 3, 0.4),
-            new OsuDifficultyHitObjectRhythm(5, 4, 0.5),
+            new OsuDifficultyHitObjectRhythm(2, 3, 0.5),
+            new OsuDifficultyHitObjectRhythm(5, 4, 0.8),
             new OsuDifficultyHitObjectRhythm(4, 5, 0.7)
         };
 
         /// <summary>
         /// Returns the closest rhythm change from <see cref="common_rhythms"/> required to hit this object.
         /// </summary>
-        /// <param name="lastObject">The gameplay <see cref="HitObject"/> preceding this one.</param>
-        /// <param name="lastLastObject">The gameplay <see cref="HitObject"/> preceding <paramref name="lastObject"/>.</param>
+        /// <param name="lastObjectTime">The gameplay preceding this one.</param>
+        /// <param name="lastLastObjectTime">The gameplay preceding <paramref name="lastObjectTime"/>.</param>
         /// <param name="clockRate">The rate of the gameplay clock.</param>
-        private OsuDifficultyHitObjectRhythm getClosestRhythm(HitObject lastObject, HitObject lastLastObject, double clockRate)
+        private OsuDifficultyHitObjectRhythm getClosestRhythm(double lastObjectTime, double lastLastObjectTime, double clockRate)
         {
-            double prevLength = (lastObject.StartTime - lastLastObject.StartTime) / clockRate;
+            double prevLength = (lastObjectTime - lastLastObjectTime) / clockRate;
             double ratio = DeltaTime / prevLength;
 
             if ((ratio < 1.0/4.0) || (ratio > 4.0)) {
