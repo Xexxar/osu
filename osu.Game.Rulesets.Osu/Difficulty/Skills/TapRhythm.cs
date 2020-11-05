@@ -50,6 +50,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                     double maxWeighting = 0.5;
 
                     double weighting = maxWeighting * erf(squishConstant * osuPrevPrev.TravelTime);
+
+                    totalStrain = weighting * sliderRhythmDiff + (1.0 - weighting) * totalStrain;
                 }
 
                 totalStrain *= strain;
