@@ -58,7 +58,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                         * Math.Pow(Math.Sin((double)osuCurrentObj.Angle / 2), 2)))
                         * (osuCurrentObj.DeltaTime - 50);
 
-                var distributionMean = Math.Max(75, 75 + (75 / .225 * (32 - osuCurrentObj.BaseObject.Radius))/100);
+                var distributionMean = Math.Max(65, 65 + (75 / .225 * (32 - osuCurrentObj.BaseObject.Radius))/100);
 
                 // this is where we use an ERF function to derive a probability.
                 var flowiness = 0.5 - 0.5 * erf((-distributionMean + x) / (25 * Math.Sqrt(2)));
@@ -68,7 +68,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 // add them to get our final velocity, length is the observed velocity and thus the difficulty.
                 var adjVelocity = Vector2.Subtract(currVector, Vector2.Multiply(prevVector, 0.33f)).Length;
 
-                strain = (velVariance * adjVelocity) * flowiness;
+                strain = (1 * adjVelocity) * flowiness;
             }
 
             return strain;

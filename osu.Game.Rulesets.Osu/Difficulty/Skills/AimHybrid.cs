@@ -49,7 +49,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                         * Math.Pow(Math.Sin((double)osuCurrentObj.Angle / 2), 2)))
                         * (osuCurrentObj.DeltaTime - 50);
 
-                var distributionMean = Math.Max(75, 75 + (75 / .225 * (32 - osuCurrentObj.BaseObject.Radius))/100);
+                var distributionMean = Math.Max(65, 65 + (75 / .225 * (32 - osuCurrentObj.BaseObject.Radius))/100);
 
                 // this is where we use an ERF function to derive a probability.
                 var flowProb = 0.5 - 0.5 * erf((-distributionMean + x) / (25 * Math.Sqrt(2)));
