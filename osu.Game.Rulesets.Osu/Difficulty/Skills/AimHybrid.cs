@@ -17,7 +17,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     {
         private double StrainDecay = 0.25;
         private const float prevMultiplier = 0.33f;
-        protected override double SkillMultiplier => 4000;
+        protected override double SkillMultiplier => 2500;
         protected override double StrainDecayBase => StrainDecay;
         protected override double StarMultiplierPerRepeat => 1.05;
 
@@ -45,7 +45,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
                 // here we generate a value of being snappy or flowy that is fed into the gauss error function to build a probability.
                 var x = (osuCurrentObj.JumpDistance - (Math.Pow(Math.Sin(Math.Min(osuNextObj.JumpDistance, Math.PI / 2)), 2)
-                        * (.4 * osuCurrentObj.JumpDistance)
+                        * (.5 * osuCurrentObj.JumpDistance)
                         * Math.Pow(Math.Sin((double)osuCurrentObj.Angle / 2), 2)))
                         * (osuCurrentObj.DeltaTime - 50);
 

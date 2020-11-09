@@ -61,7 +61,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 double sliderVelocity = 0;
                 if (osuPrevObj.BaseObject is Slider osuSlider)
                 {
-                      sliderVelocity = (osuSlider.LazyTravelDistance / 50) / (30 + osuSlider.LazyTravelTime);
+                      sliderVelocity = ((1 + osuSlider.LazyTravelDistance) / 50) / (50 + osuSlider.LazyTravelTime);
                 }
 
                 // add them to get our final velocity, length is the observed velocity and thus the difficulty.
