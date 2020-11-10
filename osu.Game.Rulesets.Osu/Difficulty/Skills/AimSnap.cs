@@ -65,7 +65,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 }
 
                 // add them to get our final velocity, length is the observed velocity and thus the difficulty.
-                var adjVelocity = Vector2.Add(currVector, prevVector).Length / ((osuCurrentObj.StrainTime - 15) / osuCurrentObj.StrainTime);
+                var adjVelocity = Vector2.Add(currVector, prevVector).Length / ((osuCurrentObj.StrainTime - 20) / osuCurrentObj.StrainTime);
 
                 strain = (adjVelocity
                         + sliderVelocity
