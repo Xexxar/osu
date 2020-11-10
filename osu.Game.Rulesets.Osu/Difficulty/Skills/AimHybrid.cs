@@ -19,7 +19,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private const float prevMultiplier = 0.5f;
         protected override double SkillMultiplier => 2000;
         protected override double StrainDecayBase => StrainDecay;
-        protected override double StarMultiplierPerRepeat => 1.04;
+        protected override double StarMultiplierPerRepeat => 1.05;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
