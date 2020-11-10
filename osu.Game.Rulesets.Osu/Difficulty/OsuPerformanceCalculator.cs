@@ -245,8 +245,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double approachRateFactor = 1.0f;
             if (Attributes.ApproachRate > 10.33f)
                 approachRateFactor += 0.1f * (Attributes.ApproachRate - 10.33f);
-      //      else if (Attributes.ApproachRate < 9.0f)
-      //          approachRateFactor += 0.05f * (9.0f - Attributes.ApproachRate);
+            else if (Attributes.ApproachRate < 9.0f)
+                approachRateFactor += 0.05f * (9.0f - Attributes.ApproachRate);
 
             aimFlowValue *= approachRateFactor;
 
@@ -302,7 +302,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             // Scale the tapTapStamina value with accuracy
             double accScale = 0.675f + 1.5 * Math.Pow(Math.Sin(Math.Min(0.0f, Math.PI * (accuracy - 0.75f))), 4.0f);
-            double ODScale = 0.5f + Math.Pow(Attributes.OverallDifficulty, 2) / 150;
+            double ODScale = 0.5f + Attributes.OverallDifficulty / 14;
             tapTapStaminaValue *= 0.1f + accScale * ODScale;
 
             return tapTapStaminaValue;
@@ -321,7 +321,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             // Scale the tapSpeed value with accuracy
             double accScale = 0.675f + 1.5 * Math.Pow(Math.Sin(Math.Min(0.0f, Math.PI * (accuracy - 0.75f))), 4.0f);
-            double ODScale = 0.5f + Math.Pow(Attributes.OverallDifficulty, 2) / 150;
+            double ODScale = 0.5f + Attributes.OverallDifficulty / 14;
             tapSpeedValue *= 0.1f + accScale * ODScale;
 
             return tapSpeedValue;
@@ -346,7 +346,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             // Scale the finger control value with accuracy
             double accScale = 0.675f + 1.5 * Math.Pow(Math.Sin(Math.Min(0.0f, Math.PI * (accuracy - 0.75f))), 4.0f);
-            double ODScale = 0.5f + Math.Pow(Attributes.OverallDifficulty, 2) / 150;
+            double ODScale = 0.5f + Attributes.OverallDifficulty / 14;
             tapRhythmValue *= 0.1f + accScale * ODScale;
 
             return tapRhythmValue;
