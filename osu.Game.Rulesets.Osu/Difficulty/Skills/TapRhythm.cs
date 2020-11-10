@@ -58,7 +58,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
                 // Apply multiplier based on the rhythm change in comparison to OD hit window.
                 double msChange = Math.Abs(osuCurrent.DeltaTime - osuPrevious.DeltaTime);
-                double changeWeighting = 0.5 - erf(2.0 * (-msChange / (2.0 * osuCurrent.BaseObject.GreatHitWindow / osuCurrent.ClockRate) + 1.0)) / 2.0;
+                double changeWeighting = 0.5 - erf(4.0 * (-msChange / (osuCurrent.BaseObject.GreatHitWindow / osuCurrent.ClockRate) + 1.0)) / 2.0;
                 totalStrain *= changeWeighting;
 
                 return totalStrain;
