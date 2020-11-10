@@ -16,7 +16,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     public class AimHybrid : OsuSkill
     {
         private double StrainDecay = 0.25;
-        private const float prevMultiplier = 0.33f;
+        private const float prevMultiplier = 0.5f;
         protected override double SkillMultiplier => 2000;
         protected override double StrainDecayBase => StrainDecay;
         protected override double StarMultiplierPerRepeat => 1.05;
@@ -41,7 +41,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 // Here we set a custom strain decay rate that decays based on # of objects rather than MS.
                 // This is just so we can focus on balancing only the strain rewarded, and time no longer matters.
                 // this will make a repeated pattern "cap out" or reach 85 maximum difficulty in 12 objects.
-                StrainDecay = Math.Pow(.9, 1000.0 / Math.Min(osuCurrentObj.StrainTime, 250.0));
+                StrainDecay = Math.Pow(.9, 1000.0 / Math.Min(osuCurrentObj.StrainTime, 500.0));
 
                 // here we generate a value of being snappy or flowy that is fed into the gauss error function to build a probability.
                 var x = (osuCurrentObj.JumpDistance - (Math.Pow(Math.Sin(Math.Min(osuNextObj.JumpDistance, Math.PI / 2)), 2)
