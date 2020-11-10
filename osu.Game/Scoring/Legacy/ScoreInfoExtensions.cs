@@ -67,7 +67,7 @@ namespace osu.Game.Scoring.Legacy
                 case 0:
                 case 1:
                 case 3:
-                    return getCount(scoreInfo, HitResult.Ok);
+                    return getCount(scoreInfo, HitResult.Good);
 
                 case 2:
                     return getCount(scoreInfo, HitResult.LargeTickHit);

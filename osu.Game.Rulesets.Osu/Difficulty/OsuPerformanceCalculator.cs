@@ -301,7 +301,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double tapTapStaminaValue = Math.Pow(5.0f * Math.Max(1.0f, rawTapStamina / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
             // Scale the tapTapStamina value with accuracy
-            double accScale = 0.5f + Math.Pow(Math.Sin(2.5f * Math.PI * (accuracy - 0.8f)), 2.0f) / 2.0f;
+            double accScale = 0.675f + 1.5 * Math.Pow(Math.Sin(Math.Min(0.0f, Math.PI * (accuracy - 0.75f))), 4.0f);
             double ODScale = 0.5f + Math.Pow(Attributes.OverallDifficulty, 2) / 150;
             tapTapStaminaValue *= 0.1f + accScale * ODScale;
 
@@ -320,7 +320,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double tapSpeedValue = Math.Pow(5.0f * Math.Max(1.0f, rawTapSpeed / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
             // Scale the tapSpeed value with accuracy
-            double accScale = 0.5f + Math.Pow(Math.Sin(2.5f * Math.PI * (accuracy - 0.8f)), 2.0f) / 2.0f;
+            double accScale = 0.675f + 1.5 * Math.Pow(Math.Sin(Math.Min(0.0f, Math.PI * (accuracy - 0.75f))), 4.0f);
             double ODScale = 0.5f + Math.Pow(Attributes.OverallDifficulty, 2) / 150;
             tapSpeedValue *= 0.1f + accScale * ODScale;
 
@@ -345,7 +345,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             tapRhythmValue *= approachRateFactor;
 
             // Scale the finger control value with accuracy
-            double accScale = 0.5f + Math.Pow(Math.Sin(2.5f * Math.PI * (accuracy - 0.8f)), 2.0f) / 2.0f;
+            double accScale = 0.675f + 1.5 * Math.Pow(Math.Sin(Math.Min(0.0f, Math.PI * (accuracy - 0.75f))), 4.0f);
             double ODScale = 0.5f + Math.Pow(Attributes.OverallDifficulty, 2) / 150;
             tapRhythmValue *= 0.1f + accScale * ODScale;
 
