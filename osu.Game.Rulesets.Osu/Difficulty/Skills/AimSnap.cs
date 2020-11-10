@@ -15,7 +15,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     public class AimSnap : OsuSkill
     {
         private double StrainDecay = 0.2;
-        private const float prevMultiplier = 0.33f;
+        private const float prevMultiplier = 0.5f;
 
         protected override double SkillMultiplier => 2500;
         protected override double StrainDecayBase => StrainDecay;
@@ -65,12 +65,11 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 }
 
                 // add them to get our final velocity, length is the observed velocity and thus the difficulty.
-                var adjVelocity = (1 + Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 8) / 4)
-                                     * Vector2.Add(currVector, prevVector).Length;
+                var adjVelocity = Vector2.Add(currVector, prevVector).Length / ((osuCurrentObj.StrainTime - 15) / osuCurrentObj.StrainTime);
 
                 strain = (adjVelocity
-                        + Math.Max(sliderVelocity,
-                        Math.Sqrt(adjVelocity * sliderVelocity)))
+                        + sliderVelocity
+                        + Math.Sqrt(adjVelocity * sliderVelocity))
                           * snappiness;
             }
 
