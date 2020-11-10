@@ -19,7 +19,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
         protected override double SkillMultiplier => 2000;
         protected override double StrainDecayBase => StrainDecay;
-        protected override double StarMultiplierPerRepeat => 1.05;
+        protected override double StarMultiplierPerRepeat => 1.04;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
@@ -66,7 +66,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 // Create velocity vectors, scale prior by prevMultiplier
 
                 // add them to get our final velocity, length is the observed velocity and thus the difficulty.
-                var adjVelocity = Vector2.Subtract(currVector, Vector2.Multiply(prevVector, 0.33f)).Length / ((osuCurrentObj.StrainTime - 20) / osuCurrentObj.StrainTime);
+                var adjVelocity = Vector2.Subtract(currVector, Vector2.Multiply(prevVector, 0.33f)).Length / ((osuCurrentObj.StrainTime - 10) / osuCurrentObj.StrainTime);
 
                 strain = (velVariance * adjVelocity) * flowiness;
             }

@@ -224,7 +224,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             aimSnapValue *= approachRateFactor;
 
             // Scale the jump aim value with accuracy
-            double accScale = (1.0f + 3.0f * accuracy) / 4.0f;
+            double accScale = 0.5f + Math.Pow(Math.Sin(Math.Max(0.0f, Math.PI * (accuracy - 0.75f))), 2.0f);
             double ODScale = 0.98f + Math.Pow(Attributes.OverallDifficulty, 2) / 2500;
             aimSnapValue *= accScale * ODScale;
 
@@ -255,7 +255,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 aimFlowValue *= 1.0f + 0.1f * (12.0f - Attributes.ApproachRate);
 
             // Scale the stream aim value with accuracy
-            double accScale = (1.0f + 3.0f * accuracy) / 4.0f;
+            double accScale = 0.5f + Math.Pow(Math.Sin(Math.Max(0.0f, Math.PI * (accuracy - 0.75f))), 2.0f);
             double ODScale = 0.98f + Math.Pow(Attributes.OverallDifficulty, 2) / 2500;
             aimFlowValue *= accScale * ODScale;
 
@@ -286,7 +286,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 aimHybridValue *= 1.0f + 0.05f * (12.0f - Attributes.ApproachRate);
 
             // Scale the control aim value with accuracy
-            double accScale = (1.0f + 3.0f * accuracy) / 4.0f;
+            double accScale = 0.5f + Math.Pow(Math.Sin(Math.Max(0.0f, Math.PI * (accuracy - 0.75f))), 2.0f);
             double ODScale = 0.98f + Math.Pow(Attributes.OverallDifficulty, 2) / 2500;
             aimHybridValue *= accScale * ODScale;
 
@@ -301,7 +301,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double tapTapStaminaValue = Math.Pow(5.0f * Math.Max(1.0f, rawTapStamina / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
             // Scale the tapTapStamina value with accuracy
-            double accScale = 0.675f + 1.5 * Math.Pow(Math.Sin(Math.Min(0.0f, Math.PI * (accuracy - 0.75f))), 4.0f);
+            double accScale = 0.675f + 1.5 * Math.Pow(Math.Sin(Math.Max(0.0f, Math.PI * (accuracy - 0.75f))), 4.0f);
             double ODScale = 0.5f + Attributes.OverallDifficulty / 14;
             tapTapStaminaValue *= 0.1f + accScale * ODScale;
 
@@ -320,7 +320,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double tapSpeedValue = Math.Pow(5.0f * Math.Max(1.0f, rawTapSpeed / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
             // Scale the tapSpeed value with accuracy
-            double accScale = 0.675f + 1.5 * Math.Pow(Math.Sin(Math.Min(0.0f, Math.PI * (accuracy - 0.75f))), 4.0f);
+            double accScale = 0.675f + 1.5 * Math.Pow(Math.Sin(Math.Max(0.0f, Math.PI * (accuracy - 0.75f))), 4.0f);
             double ODScale = 0.5f + Attributes.OverallDifficulty / 14;
             tapSpeedValue *= 0.1f + accScale * ODScale;
 
