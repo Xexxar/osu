@@ -19,7 +19,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private const float prevMultiplier = 0.33f;
         protected override double SkillMultiplier => 2500;
         protected override double StrainDecayBase => StrainDecay;
-        protected override double StarMultiplierPerRepeat => 1.07;
+        protected override double StarMultiplierPerRepeat => 1.05;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
@@ -41,15 +41,15 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 // Here we set a custom strain decay rate that decays based on # of objects rather than MS.
                 // This is just so we can focus on balancing only the strain rewarded, and time no longer matters.
                 // this will make a repeated pattern "cap out" or reach 85 maximum difficulty in 12 objects.
-                StrainDecay = Math.Pow(.9, 1000.0 / Math.Min(osuCurrentObj.StrainTime, 200.0));
+                StrainDecay = Math.Pow(.9, 1000.0 / Math.Min(osuCurrentObj.StrainTime, 500.0));
 
                 // here we generate a value of being snappy or flowy that is fed into the gauss error function to build a probability.
                 var x = (osuCurrentObj.JumpDistance - (Math.Pow(Math.Sin(Math.Min(osuNextObj.JumpDistance, Math.PI / 2)), 2)
-                        * (osuCurrentObj.JumpDistance / 3)
-                        * Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 2)))
+                        * (.5 * osuCurrentObj.JumpDistance)
+                        * Math.Pow(Math.Sin((double)osuCurrentObj.Angle / 2), 2)))
                         * (osuCurrentObj.DeltaTime - 50);
 
-                var distributionMean = Math.Max(75, 75 + (75 / .225 * (32 - osuCurrentObj.BaseObject.Radius))/100);
+                var distributionMean = Math.Max(65, 65 + (75 / .225 * (32 - osuCurrentObj.BaseObject.Radius))/100);
 
                 // this is where we use an ERF function to derive a probability.
                 var flowProb = 0.5 - 0.5 * erf((-distributionMean + x) / (25 * Math.Sqrt(2)));
@@ -63,8 +63,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 var flowVelocity = Vector2.Subtract(currVector, prevVector).Length;
                 var snapVelocity = Vector2.Add(currVector, prevVector).Length;
 
-                var snapStrain = snapVelocity * (4 * snapProb * flowProb);
-                var flowStrain = flowVelocity * (4 * snapProb * flowProb);
+                var snapStrain = snapVelocity * (4 * flowProb * snapProb) * snapProb;
+                var flowStrain = flowVelocity * (4 * flowProb * snapProb) * flowProb;
 
                 strain = snapStrain + flowStrain;
             }

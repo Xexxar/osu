@@ -32,10 +32,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         private int countMeh;
         private int countMiss;
         private const double combo_weight = 0.5;
-        private const double aim_pp_factor = 1.25f;
-        private const double tapSpeed_pp_factor = 1.5f;
+        private const double aim_pp_factor = 1.1f;
+        private const double tapSpeed_pp_factor = 1.1f;
         private const double total_factor = 1.1f;
-        private const double skills_factor = 2;
+        private const double skills_factor = 1.1f;
 
         public OsuPerformanceCalculator(Ruleset ruleset, DifficultyAttributes attributes, ScoreInfo score)
            : base(ruleset, attributes, score)
@@ -60,7 +60,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 return 0;
 
 
-            double aim_multiplier = 1.07f;
+            double aim_multiplier = 1.0f;
             double tapSpeed_multiplier = 1.0f;
             double total_multiplier = 1.0f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
             double skills_multiplier = 1.0f;
@@ -219,7 +219,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             if (Attributes.ApproachRate > 10.33f)
                 approachRateFactor += 0.3f * (Attributes.ApproachRate - 10.33f);
             else if (Attributes.ApproachRate < 9.0f)
-                approachRateFactor += 0.3f * (9.0f - Attributes.ApproachRate);
+                approachRateFactor += 0.2f * (9.0f - Attributes.ApproachRate);
 
             aimSnapValue *= approachRateFactor;
 
@@ -245,8 +245,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double approachRateFactor = 1.0f;
             if (Attributes.ApproachRate > 10.33f)
                 approachRateFactor += 0.1f * (Attributes.ApproachRate - 10.33f);
-            else if (Attributes.ApproachRate < 9.0f)
-                approachRateFactor += 0.1f * (9.0f - Attributes.ApproachRate);
+      //      else if (Attributes.ApproachRate < 9.0f)
+      //          approachRateFactor += 0.05f * (9.0f - Attributes.ApproachRate);
 
             aimFlowValue *= approachRateFactor;
 
@@ -277,7 +277,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             if (Attributes.ApproachRate > 10.33f)
                 approachRateFactor += 0.2f * (Attributes.ApproachRate - 10.33f);
             else if (Attributes.ApproachRate < 9.0f)
-                approachRateFactor += 0.2f * (9.0f - Attributes.ApproachRate);
+                approachRateFactor += 0.15f * (9.0f - Attributes.ApproachRate);
 
             aimHybridValue *= approachRateFactor;
 

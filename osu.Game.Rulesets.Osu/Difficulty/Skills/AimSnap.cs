@@ -15,11 +15,11 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     public class AimSnap : OsuSkill
     {
         private double StrainDecay = 0.2;
-        private const float prevMultiplier = 0.45f;
+        private const float prevMultiplier = 0.33f;
 
         protected override double SkillMultiplier => 2500;
         protected override double StrainDecayBase => StrainDecay;
-        protected override double StarMultiplierPerRepeat => 1.07;
+        protected override double StarMultiplierPerRepeat => 1.05;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
@@ -41,15 +41,15 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 // Here we set a custom strain decay rate that decays based on # of objects rather than MS.
                 // This is just so we can focus on balancing only the strain rewarded, and time no longer matters.
                 // this will make a repeated pattern "cap out" or reach 85 maximum difficulty in 12 objects.
-                StrainDecay = Math.Pow(.85, 1000.0 / Math.Min(osuCurrentObj.StrainTime, 200.0));
+                StrainDecay = Math.Pow(.85, 1000.0 / Math.Min(osuCurrentObj.StrainTime, 500.0));
 
                 // here we generate a value of being snappy or flowy that is fed into the gauss error function to build a probability.
                 var x = (osuCurrentObj.JumpDistance - (Math.Pow(Math.Sin(Math.Min(osuNextObj.JumpDistance, Math.PI / 2)), 2)
-                        * (osuCurrentObj.JumpDistance / 3)
-                        * Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 2)))
+                        * (.3 * osuCurrentObj.JumpDistance)
+                        * Math.Pow(Math.Sin((double)osuCurrentObj.Angle / 2), 2)))
                         * (osuCurrentObj.DeltaTime - 50);
 
-                var distributionMean = Math.Max(75, 75 + (75 / .225 * (32 - osuCurrentObj.BaseObject.Radius)) / 100);
+                var distributionMean = Math.Max(65, 65 + (75 / .225 * (32 - osuCurrentObj.BaseObject.Radius)) / 100);
 
                 // this is where we use an ERF function to derive a probability.
                 var snappiness = 0.5 * erf((-distributionMean + x) / (25 * Math.Sqrt(2))) + 0.5;
@@ -58,10 +58,20 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 var prevVector = Vector2.Multiply(Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime), prevMultiplier);
                 var currVector = Vector2.Divide(osuCurrentObj.DistanceVector, (float)osuCurrentObj.StrainTime);
 
-                // add them to get our final velocity, length is the observed velocity and thus the difficulty.
-                var adjVelocity = Vector2.Add(currVector, prevVector).Length;
+                double sliderVelocity = 0;
+                if (osuPrevObj.BaseObject is Slider osuSlider)
+                {
+                      sliderVelocity = (Math.Max(osuSlider.LazyTravelDistance, 1) / 50) / (50 + osuSlider.LazyTravelTime);
+                }
 
-                strain = adjVelocity * snappiness;
+                // add them to get our final velocity, length is the observed velocity and thus the difficulty.
+                var adjVelocity = (1 + Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 8) / 4)
+                                     * Vector2.Add(currVector, prevVector).Length;
+
+                strain = (adjVelocity
+                        + Math.Max(sliderVelocity,
+                        Math.Sqrt(adjVelocity * sliderVelocity)))
+                          * snappiness;
             }
 
             return strain;
