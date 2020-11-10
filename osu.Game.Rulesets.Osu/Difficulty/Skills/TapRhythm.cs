@@ -14,7 +14,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     public class TapRhythm : OsuSkill
     {
         private double StrainDecay = 0.5;
-        protected override double SkillMultiplier => 400;
+        protected override double SkillMultiplier => 550;
         protected override double StrainDecayBase => StrainDecay;
         protected override double StarMultiplierPerRepeat => 1.04;
 
@@ -32,7 +32,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 var osuPrevPrev = (OsuDifficultyHitObject)Previous[1];
                 double strainTime = Math.Max(osuCurrent.DeltaTime, 46.875);
                 double prevStrainTime = Math.Max(osuPrevious.DeltaTime, 46.875);
-                StrainDecay = Math.Pow(0.9, 1000.0 / Math.Min(strainTime, 375.0));
+                StrainDecay = Math.Pow(0.75, 1000.0 / Math.Min(strainTime, 375.0));
 
                 double strain = Math.Pow(75.0 / Math.Max(strainTime, prevStrainTime), 1.5);
 
@@ -47,15 +47,20 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                     sliderRhythmDiff = osuCurrent.SliderRhythm.Difficulty;
 
                     double squishConstant = 1/50.0;
-                    double maxWeighting = 0.5;
+                    double maxSliderWeighting = 0.5;
 
-                    double weighting = maxWeighting * erf(squishConstant * osuPrevPrev.TravelTime);
+                    double sliderWeighting = maxSliderWeighting * erf(squishConstant * osuPrevPrev.TravelTime);
 
-                    totalStrain = weighting * sliderRhythmDiff + (1.0 - weighting) * totalStrain;
+                    totalStrain = sliderWeighting * sliderRhythmDiff + (1.0 - sliderWeighting) * totalStrain;
                 }
 
                 totalStrain *= strain;
-                
+
+                // Apply multiplier based on the rhythm change in comparison to OD hit window.
+                double msChange = Math.Abs(osuCurrent.DeltaTime - osuPrevious.DeltaTime);
+                double changeWeighting = 0.5 - erf(2.0 * (-msChange / (2.0 * osuCurrent.BaseObject.GreatHitWindow / osuCurrent.ClockRate) + 1.0)) / 2.0;
+                totalStrain *= changeWeighting;
+
                 return totalStrain;
             }
             return 0;
