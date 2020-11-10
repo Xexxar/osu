@@ -33,9 +33,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         private int countMiss;
         private const double combo_weight = 0.5;
         private const double aim_pp_factor = 1.1f;
-        private const double tapSpeed_pp_factor = 1.5f;
+        private const double tapSpeed_pp_factor = 1.1f;
         private const double total_factor = 1.1f;
-        private const double skills_factor = 2;
+        private const double skills_factor = 1.1f;
 
         public OsuPerformanceCalculator(Ruleset ruleset, DifficultyAttributes attributes, ScoreInfo score)
            : base(ruleset, attributes, score)
@@ -60,7 +60,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 return 0;
 
 
-            double aim_multiplier = 1.07f;
+            double aim_multiplier = 1.0f;
             double tapSpeed_multiplier = 1.0f;
             double total_multiplier = 1.0f; // This is being adjusted to keep the final pp value scaled around what it used to be when changing things
             double skills_multiplier = 1.0f;

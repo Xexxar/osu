@@ -61,16 +61,16 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 double sliderVelocity = 0;
                 if (osuPrevObj.BaseObject is Slider osuSlider)
                 {
-                      sliderVelocity = ((1 + osuSlider.LazyTravelDistance) / 50) / (50 + osuSlider.LazyTravelTime);
+                      sliderVelocity = (Math.Max(osuSlider.LazyTravelDistance, 1) / 50) / (50 + osuSlider.LazyTravelTime);
                 }
 
                 // add them to get our final velocity, length is the observed velocity and thus the difficulty.
-                var adjVelocity = (1 + Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 6) / 4)
+                var adjVelocity = (1 + Math.Pow(Math.Sin((double)osuCurrentObj.Angle), 8) / 4)
                                      * Vector2.Add(currVector, prevVector).Length;
 
                 strain = (adjVelocity
-                        + sliderVelocity
-                        + Math.Sqrt(adjVelocity * sliderVelocity))
+                        + Math.Max(sliderVelocity,
+                        Math.Sqrt(adjVelocity * sliderVelocity)))
                           * snappiness;
             }
 

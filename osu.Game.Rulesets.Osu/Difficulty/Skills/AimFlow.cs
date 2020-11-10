@@ -68,7 +68,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 // add them to get our final velocity, length is the observed velocity and thus the difficulty.
                 var adjVelocity = Vector2.Subtract(currVector, Vector2.Multiply(prevVector, 0.33f)).Length;
 
-                strain = (1 * adjVelocity) * flowiness;
+                strain = (velVariance * adjVelocity) * flowiness;
             }
 
             return strain;

@@ -14,11 +14,11 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     public class TapSpeed : OsuSkill
     {
         private double StrainDecay = 0.9;
-        protected override double SkillMultiplier => 12;
+        protected override double SkillMultiplier => 7.5;
         protected override double StrainDecayBase => StrainDecay;
         protected override double StarMultiplierPerRepeat => 1.01;
 
-        private const double quarter220 = 60000 / (4 * 220);
+        private int repeatStrainCount = 0;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
@@ -30,7 +30,17 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             StrainDecay = Math.Pow(0.925, 1000.0 / Math.Min(strainTime, 200.0));
 
-            double strain = Math.Pow(quarter220 / strainTime, 2.5);
+            if (Previous.Count > 0)
+            {
+                var osuPrevious = (OsuDifficultyHitObject)Previous[0];
+
+                if (Math.Abs(osuCurrent.StrainTime - osuPrevious.StrainTime) > 10.0)
+                  repeatStrainCount = 0;
+                else
+                  repeatStrainCount++;
+            }
+
+            double strain = Math.Pow(75 / strainTime, 2.5);
 
             return strain;
         }
