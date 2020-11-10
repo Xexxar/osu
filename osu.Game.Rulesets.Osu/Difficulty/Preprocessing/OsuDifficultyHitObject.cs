@@ -210,8 +210,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
             double prevLength = (lastObjectTime - lastLastObjectTime) / clockRate;
             double ratio = DeltaTime / prevLength;
 
-            if ((ratio < 1.0/4.0) || (ratio > 4.0) || (Math.Abs(DeltaTime - prevLength) <= 25)) {
-                ratio = 1.0;  // Extreme ratio changes and ratio changes very close to 1:1 are counted as 0 strain.
+            if ((ratio < 1.0/4.0) || (ratio > 4.0)) {
+                ratio = 1.0;  // Extreme ratio changes are counted as 0 strain.
             }
 
             return common_rhythms.OrderBy(x => Math.Abs(x.Ratio - ratio)).First();
