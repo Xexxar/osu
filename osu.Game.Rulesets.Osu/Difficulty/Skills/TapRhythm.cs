@@ -14,7 +14,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     public class TapRhythm : OsuSkill
     {
         private double StrainDecay = 0.5;
-        protected override double SkillMultiplier => 550;
+        protected override double SkillMultiplier => 150;
         protected override double StrainDecayBase => StrainDecay;
         protected override double StarMultiplierPerRepeat => 1.04;
 
@@ -32,7 +32,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 var osuPrevPrev = (OsuDifficultyHitObject)Previous[1];
                 double strainTime = Math.Max(osuCurrent.DeltaTime, 46.875);
                 double prevStrainTime = Math.Max(osuPrevious.DeltaTime, 46.875);
-                StrainDecay = Math.Pow(0.75, 1000.0 / Math.Min(strainTime, 375.0));
+                StrainDecay = Math.Pow(0.95, 1000.0 / Math.Min(strainTime, 500.0));
 
                 double strain = Math.Pow(75.0 / Math.Max(strainTime, prevStrainTime), 1.5);
 
