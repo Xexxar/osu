@@ -16,7 +16,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private double StrainDecay = 0.5;
         protected override double SkillMultiplier => 100;
         protected override double StrainDecayBase => StrainDecay;
-        protected override double StarMultiplierPerRepeat => 1.025;
+        protected override double StarMultiplierPerRepeat => 1.05;
 
         private const double quarter220 = 60000 / (4 * 220);
 

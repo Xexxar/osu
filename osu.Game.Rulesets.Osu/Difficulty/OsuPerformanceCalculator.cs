@@ -217,7 +217,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double approachRateFactor = 1.0f;
 
             if (Attributes.ApproachRate > 10.33f)
-                approachRateFactor += 0.3f * (Attributes.ApproachRate - 10.33f);
+                approachRateFactor += 0.2f * (Attributes.ApproachRate - 10.33f);
             else if (Attributes.ApproachRate < 9.0f)
                 approachRateFactor += 0.2f * (9.0f - Attributes.ApproachRate);
 
@@ -244,7 +244,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             double approachRateFactor = 1.0f;
             if (Attributes.ApproachRate > 10.33f)
-                approachRateFactor += 0.1f * (Attributes.ApproachRate - 10.33f);
+                approachRateFactor += 0.05f * (Attributes.ApproachRate - 10.33f);
             else if (Attributes.ApproachRate < 9.0f)
                 approachRateFactor += 0.05f * (9.0f - Attributes.ApproachRate);
 
@@ -275,7 +275,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             double approachRateFactor = 1.0f;
             if (Attributes.ApproachRate > 10.33f)
-                approachRateFactor += 0.2f * (Attributes.ApproachRate - 10.33f);
+                approachRateFactor += 0.15f * (Attributes.ApproachRate - 10.33f);
             else if (Attributes.ApproachRate < 9.0f)
                 approachRateFactor += 0.15f * (9.0f - Attributes.ApproachRate);
 
