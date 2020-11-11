@@ -16,7 +16,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private double StrainDecay = 0.9;
         protected override double SkillMultiplier => 7.5;
         protected override double StrainDecayBase => StrainDecay;
-        protected override double StarMultiplierPerRepeat => 1.01;
+        protected override double StarMultiplierPerRepeat => 1.025;
 
         private int repeatStrainCount = 0;
 
@@ -26,9 +26,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 return 0;
 
             var osuCurrent = (OsuDifficultyHitObject)current;
-            double strainTime = Math.Max(osuCurrent.DeltaTime, 46.875);
+            double strainTime = Math.Max(osuCurrent.DeltaTime, 40);
 
-            StrainDecay = Math.Pow(0.925, 1000.0 / Math.Min(strainTime, 200.0));
+            StrainDecay = Math.Pow(0.95, 1000.0 / Math.Min(strainTime, 200.0));
 
             if (Previous.Count > 0)
             {
@@ -40,7 +40,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                   repeatStrainCount++;
             }
 
-            double strain = Math.Pow(75 / strainTime, 2.5);
+            double strain = Math.Pow(75 / strainTime, 2.5) * Math.Pow(.975, repeatStrainCount);
 
             return strain;
         }

@@ -34,7 +34,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         private const double combo_weight = 0.5;
         private const double aim_pp_factor = 1.1f;
         private const double tapSpeed_pp_factor = 1.1f;
-        private const double total_factor = 1.35f;
+        private const double total_factor = 1.1f;
         private const double skills_factor = 1.1f;
 
         public OsuPerformanceCalculator(Ruleset ruleset, DifficultyAttributes attributes, ScoreInfo score)
@@ -302,7 +302,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             // Scale the tapTapStamina value with accuracy
             double accScale = 0.675f + 1.5 * Math.Pow(Math.Sin(Math.Max(0.0f, Math.PI * (accuracy - 0.75f))), 4.0f);
-            double ODScale = 0.5f + Attributes.OverallDifficulty / 14;
+            double ODScale = 0.5f + Math.Pow(Attributes.OverallDifficulty, 2) / 150;
             tapTapStaminaValue *= 0.1f + accScale * ODScale;
 
             return tapTapStaminaValue;
@@ -320,8 +320,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double tapSpeedValue = Math.Pow(5.0f * Math.Max(1.0f, rawTapSpeed / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
             // Scale the tapSpeed value with accuracy
-            double accScale = 0.675f + 1.5 * Math.Pow(Math.Sin(Math.Max(0.0f, Math.PI * (accuracy - 0.75f))), 4.0f);
-            double ODScale = 0.5f + Attributes.OverallDifficulty / 14;
+            double accScale = 0.5f + Math.Pow(Math.Sin(Math.Max(0.0f, Math.PI * (accuracy - 0.75f))), 2.0f);
+            double ODScale = 0.5f + Math.Pow(Attributes.OverallDifficulty, 2) / 150;
             tapSpeedValue *= 0.1f + accScale * ODScale;
 
             return tapSpeedValue;
@@ -345,8 +345,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             tapRhythmValue *= approachRateFactor;
 
             // Scale the finger control value with accuracy
-            double accScale = 0.675f + 1.5 * Math.Pow(Math.Sin(Math.Min(0.0f, Math.PI * (accuracy - 0.75f))), 4.0f);
-            double ODScale = 0.5f + Attributes.OverallDifficulty / 14;
+            double accScale = 0.5f + Math.Pow(Math.Sin(Math.Max(0.0f, Math.PI * (accuracy - 0.75f))), 2.0f);
+            double ODScale = 0.5f + Math.Pow(Attributes.OverallDifficulty, 2) / 150;
             tapRhythmValue *= 0.1f + accScale * ODScale;
 
             return tapRhythmValue;
@@ -385,6 +385,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             sigmaTotal = 1.0f / (1.0f / sigmaCircle + 1.0f / sigmaSlider);
 
             double accValue = accMultiplier * Math.Pow(accScale, -sigmaTotal);
+
+            double acc2ndScale = 0.5f + Math.Pow(Math.Sin(Math.Max(0.0f, Math.PI * (accuracy - 0.75f))), 2.0f);
+            accValue *= acc2ndScale;
 
             if (mods.Any(m => m is OsuModHidden))
                 accValue *= 1.1f;

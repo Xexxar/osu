@@ -15,9 +15,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     public class AimFlow : OsuSkill
     {
         private double StrainDecay = 0.25;
-        private const float prevMultiplier = 0.5f;
+        private const float prevMultiplier = 0.45f;
+        private const double degrees75 = 5 * Math.PI / 12;
 
-        protected override double SkillMultiplier => 2000;
+        protected override double SkillMultiplier => 2500;
         protected override double StrainDecayBase => StrainDecay;
         protected override double StarMultiplierPerRepeat => 1.05;
 
@@ -58,7 +59,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                         * Math.Pow(Math.Sin((double)osuCurrentObj.Angle / 2), 2)))
                         * (osuCurrentObj.DeltaTime - 50);
 
-                var distributionMean = Math.Max(65, 65 + (75 / .225 * (32 - osuCurrentObj.BaseObject.Radius))/100);
+                var distributionMean = Math.Max(65, 65 + 2 * (32 - osuCurrentObj.BaseObject.Radius));
 
                 // this is where we use an ERF function to derive a probability.
                 var flowiness = 0.5 - 0.5 * erf((-distributionMean + x) / (25 * Math.Sqrt(2)));
@@ -66,7 +67,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 // Create velocity vectors, scale prior by prevMultiplier
 
                 // add them to get our final velocity, length is the observed velocity and thus the difficulty.
-                var adjVelocity = Vector2.Subtract(currVector, Vector2.Multiply(prevVector, 0.33f)).Length / ((osuCurrentObj.StrainTime - 20) / osuCurrentObj.StrainTime);
+                var adjVelocity = Vector2.Subtract(currVector, Vector2.Multiply(prevVector, prevMultiplier)).Length;
+
+                if (osuPrevObj.Angle < degrees75 && osuCurrentObj.Angle < degrees75 && osuNextObj.Angle < degrees75)
+                  adjVelocity = Vector2.Add(currVector, Vector2.Multiply(prevVector, prevMultiplier)).Length;
 
                 strain = (velVariance * adjVelocity) * flowiness;
             }

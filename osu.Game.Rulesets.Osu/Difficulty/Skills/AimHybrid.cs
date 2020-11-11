@@ -16,8 +16,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     public class AimHybrid : OsuSkill
     {
         private double StrainDecay = 0.25;
-        private const float prevMultiplier = 0.5f;
-        protected override double SkillMultiplier => 2000;
+        private const float prevMultiplier = 0.45f;
+        protected override double SkillMultiplier => 2500;
         protected override double StrainDecayBase => StrainDecay;
         protected override double StarMultiplierPerRepeat => 1.05;
 
@@ -49,7 +49,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                         * Math.Pow(Math.Sin((double)osuCurrentObj.Angle / 2), 2)))
                         * (osuCurrentObj.DeltaTime - 50);
 
-                var distributionMean = Math.Max(65, 65 + (75 / .225 * (32 - osuCurrentObj.BaseObject.Radius))/100);
+                var distributionMean = Math.Max(65, 65 + 2 * (32 - osuCurrentObj.BaseObject.Radius));
 
                 // this is where we use an ERF function to derive a probability.
                 var flowProb = 0.5 - 0.5 * erf((-distributionMean + x) / (25 * Math.Sqrt(2)));
