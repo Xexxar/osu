@@ -83,7 +83,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
         private readonly List<double> powDifficulties = new List<double>(); // list of difficulty^k for each note
         private readonly List<double> timestamps = new List<double>(); // list of timestamps for each note
-        private List<Tuple<double, double>> grapher = new List<Tuple<double, double>>();
+        public List<Tuple<double, double>> grapher = new List<Tuple<double, double>>();
         public List<Tuple<double, double>> test = new List<Tuple<double, double>>();
         private double fcProb;
         private bool lastScaled;

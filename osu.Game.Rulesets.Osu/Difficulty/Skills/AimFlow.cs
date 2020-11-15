@@ -18,12 +18,17 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private const float prevMultiplier = 0.45f;
         private const double degrees75 = 5 * Math.PI / 12;
 
-        protected override double SkillMultiplier => 2500;
+        private double priorProb = 0;
+        private int count = -1;
+
+        protected override double SkillMultiplier => 2250;
         protected override double StrainDecayBase => StrainDecay;
         protected override double StarMultiplierPerRepeat => 1.05;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
+            count++;
+            double smallCSBuff = 1.0;
             StrainDecay = .25;
 
             if (current.BaseObject is Spinner)
@@ -36,46 +41,77 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 // though we are on current, we want to use current as reference for previous,
                 // so for what its worth, difficulty calculation is a function of Previous[0]
                 var osuPrevObj = (OsuDifficultyHitObject)Previous[1];
-                var osuCurrentObj = (OsuDifficultyHitObject)Previous[0];
+                var osuCurrObj = (OsuDifficultyHitObject)Previous[0];
                 var osuNextObj = (OsuDifficultyHitObject)current;
 
-                var prevVector = Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime);
-                var currVector = Vector2.Divide(osuCurrentObj.DistanceVector, (float)osuCurrentObj.StrainTime);
-                var nextVector = Vector2.Divide(osuNextObj.DistanceVector, (float)osuNextObj.StrainTime);
+                if (osuNextObj.BaseObject.Radius < 30)
+                {
+                    smallCSBuff = 1 + (30 - (float)osuNextObj.BaseObject.Radius) / 50;
+                }
 
-                double avgVel = (prevVector.Length + currVector.Length + nextVector.Length) / 3;
-                double velVariance = 1 + ((Math.Abs(prevVector.Length - avgVel)
-                                         + Math.Abs(currVector.Length - avgVel)
-                                         + Math.Abs(nextVector.Length - avgVel)) / (.05 + avgVel));
+                var prevVector = Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime);
+                var currVector = Vector2.Divide(osuCurrObj.DistanceVector, (float)osuCurrObj.StrainTime);
+                var nextVector = Vector2.Divide(osuNextObj.DistanceVector, (float)osuNextObj.StrainTime);
 
                 // Here we set a custom strain decay rate that decays based on # of objects rather than MS.
                 // This is just so we can focus on balancing only the strain rewarded, and time no longer matters.
                 // this will make a repeated pattern "cap out" or reach 85 maximum difficulty in 12 objects.
-                StrainDecay = Math.Pow(.925, 1000.0 / Math.Min(osuCurrentObj.StrainTime, 500.0));
+                double flowProb = 1;
 
-                // here we generate a value of being snappy or flowy that is fed into the gauss error function to build a probability.
-                var x = (osuCurrentObj.JumpDistance - (Math.Pow(Math.Sin(Math.Min(osuNextObj.JumpDistance, Math.PI / 2)), 2)
-                        * (.5 * osuCurrentObj.JumpDistance)
-                        * Math.Pow(Math.Sin((double)osuCurrentObj.Angle / 2), 2)))
-                        * (osuCurrentObj.DeltaTime - 50);
+                if (osuCurrObj.JumpDistance > .75)
+                {
+                  double snapValue = 2 * ((osuCurrObj.StrainTime - 50) / osuCurrObj.StrainTime)
+                                       * (Math.Max(0, (osuCurrObj.JumpDistance - .75)) / osuCurrObj.JumpDistance)
+                                       * (50 + (osuCurrObj.StrainTime - 50) / osuCurrObj.JumpDistance);
+                  double flowValue =  osuCurrObj.StrainTime / osuCurrObj.JumpDistance
+                                        * (1 - .75 * Math.Pow(Math.Sin(Math.PI / 2.0 * Math.Min(1, Math.Max(0, osuNextObj.JumpDistance - 0.5))), 2)
+                                        * Math.Pow(Math.Sin((Math.PI - (double)osuCurrObj.Angle) / 2), 2));
+                  double diffValue = snapValue - flowValue;
+                  flowProb = 0.5 - 0.5 * erf(diffValue / (5 * Math.Sqrt(2)));
+                }
 
-                var distributionMean = Math.Max(65, 65 + 2 * (32 - osuCurrentObj.BaseObject.Radius));
+                double sliderVelocity = 0;
+                if (osuPrevObj.BaseObject is Slider osuSlider)
+                  sliderVelocity = (Math.Max(osuSlider.LazyTravelDistance, 1) / 50) / (50 + osuSlider.LazyTravelTime);
 
-                // this is where we use an ERF function to derive a probability.
-                var flowiness = 0.5 - 0.5 * erf((-distributionMean + x) / (25 * Math.Sqrt(2)));
+                double angleBuff = 0.0;
+                double angle = (double)osuCurrObj.Angle;
 
-                // Create velocity vectors, scale prior by prevMultiplier
+                if (angle < Math.PI / 4)
+                  angleBuff = 1.0;
+                else if (angle > 3 * Math.PI / 4)
+                  angleBuff = 0.0;
+                else
+                  angleBuff = Math.Pow(Math.Sin(3 * Math.PI / 4 - angle), 2);
+
+                double velocity = 0;
+                if (osuCurrObj.JumpDistance < 1)
+                  velocity = (Math.Sin((Math.PI / 2) * (osuCurrObj.JumpDistance - 1)) + 1) / osuCurrObj.StrainTime;
+                else
+                  velocity = osuCurrObj.JumpDistance / osuCurrObj.StrainTime;// * osuCurrObj.StrainTime / (osuCurrObj.StrainTime - 15);
+
+                double velChangeBonus = Math.Min(1, osuPrevObj.JumpDistance) * Math.Abs(currVector.Length - prevVector.Length) * priorProb;
+                priorProb = flowProb;
+
+
+
 
                 // add them to get our final velocity, length is the observed velocity and thus the difficulty.
-                var adjVelocity = Vector2.Subtract(currVector, Vector2.Multiply(prevVector, prevMultiplier)).Length;
+              //  var adjVelocity = Vector2.Subtract(currVector, Vector2.Multiply(prevVector, prevMultiplier)).Length;
 
-                if (osuPrevObj.Angle < degrees75 && osuCurrentObj.Angle < degrees75 && osuNextObj.Angle < degrees75)
-                  adjVelocity = Vector2.Add(currVector, Vector2.Multiply(prevVector, prevMultiplier)).Length;
+        //        if (osuPrevObj.Angle < degrees75 && osuCurrObj.Angle < degrees75 && osuNextObj.Angle < degrees75)
+      //            adjVelocity = Vector2.Add(currVector, Vector2.Multiply(prevVector, prevMultiplier)).Length;
 
-                strain = (velVariance * adjVelocity) * flowiness;
+                strain = (sliderVelocity + Math.Sqrt(velocity * sliderVelocity)
+                + velChangeBonus + velocity * (1 + 1 * angleBuff * Math.Min(1, osuPrevObj.JumpDistance))) * flowProb;
+
+                // Console.WriteLine("Count " + count);
+                // Console.WriteLine("anglebuff: " + angleBuff);
+                // Console.WriteLine("priorProb: " + priorProb);
+                // Console.WriteLine("Strain: " + strain * 1000);
             }
 
-            return strain;
+            return smallCSBuff * strain;
 
         }
 
