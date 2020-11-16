@@ -20,15 +20,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
         private int count = -1;
 
-        protected override double SkillMultiplier => 1400;
+        protected override double SkillMultiplier => 1700;
         protected override double StrainDecayBase => StrainDecay;
-        protected override double StarMultiplierPerRepeat => 1.075;
+        protected override double StarMultiplierPerRepeat => 1.05;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
             count++;
             double smallCSBuff = 1.0;
-            StrainDecay = .2;
 
             if (current.BaseObject is Spinner)
                 return 0;
@@ -85,7 +84,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 else
                   angleBuff = Math.Pow(Math.Sin(angle - Math.PI / 4), 2);
 
-                double velocity = currVector.Length * Math.Pow(osuCurrObj.StrainTime / (osuCurrObj.StrainTime - 45), 1.75);
+                double velocity = currVector.Length * Math.Pow(osuCurrObj.StrainTime / (osuCurrObj.StrainTime - 45), 1.5);
 
                 double sliderVelocity = 0;
                 if (osuPrevObj.BaseObject is Slider osuSlider)

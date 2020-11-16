@@ -14,9 +14,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     public class TapSpeed : OsuSkill
     {
         private double StrainDecay = 0.9;
-        protected override double SkillMultiplier => 700;
+        protected override double SkillMultiplier => 10;
         protected override double StrainDecayBase => StrainDecay;
-        protected override double StarMultiplierPerRepeat => 1.025;
+        protected override double StarMultiplierPerRepeat => 1.05;
 
         private int repeatStrainCount = 0;
 
@@ -33,7 +33,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 var osuNextObj = (OsuDifficultyHitObject)current;
 
                 double strainTime = Math.Max(osuCurrObj.DeltaTime, 40);
-                StrainDecay = Math.Pow(0.975, 1000.0 / Math.Min(strainTime, 200.0));
+                StrainDecay = Math.Pow(0.925, 1000.0 / Math.Min(strainTime, 200.0));
 
                 double snapProb = 0;
 
@@ -54,11 +54,12 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 else
                   repeatStrainCount++;
 
-                double variantStrain = 0;
-                if (repeatStrainCount % 2 == 0)
-                  variantStrain = (1 / strainTime) * Math.Pow(.9, repeatStrainCount);
+                double variantStrain = Math.Pow(75 / osuCurrObj.StrainTime, 3);//Math.Pow(100 / Math.Max(osuCurrObj.StrainTime, osuPrevObj.StrainTime), 2);// * Math.Pow(.95, repeatStrainCount);
 
-                strain = Math.Max(snapProb * (1 / strainTime), (1-snapProb) * variantStrain);
+                if (osuPrevObj.BaseObject is Slider osuSlider)
+                  variantStrain = 0;
+
+                strain = Math.Max(snapProb * Math.Pow(150 / osuCurrObj.StrainTime, 1.5), (1 - snapProb) * variantStrain);
             }
 
             return strain;

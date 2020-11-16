@@ -16,14 +16,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     {
         private double StrainDecay = 0.25;
         private const float prevMultiplier = 0.45f;
-        private const double degrees75 = 5 * Math.PI / 12;
+        private const double degrees45 = Math.PI / 4;
 
         private double priorProb = 0;
         private int count = -1;
 
-        protected override double SkillMultiplier => 2000;
+        protected override double SkillMultiplier => 1750;
         protected override double StrainDecayBase => StrainDecay;
-        protected override double StarMultiplierPerRepeat => 1.075;
+        protected override double StarMultiplierPerRepeat => 1.05;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
@@ -52,6 +52,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 var prevVector = Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime);
                 var currVector = Vector2.Divide(osuCurrObj.DistanceVector, (float)osuCurrObj.StrainTime);
                 var nextVector = Vector2.Divide(osuNextObj.DistanceVector, (float)osuNextObj.StrainTime);
+
+                StrainDecay = Math.Pow(.925, 1000.0 / Math.Min(osuCurrObj.StrainTime, 500.0));
 
                 // Here we set a custom strain decay rate that decays based on # of objects rather than MS.
                 // This is just so we can focus on balancing only the strain rewarded, and time no longer matters.
@@ -88,11 +90,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 // if (osuCurrObj.JumpDistance < 1)
                 //   velocity = (Math.Sin((Math.PI / 2) * (osuCurrObj.JumpDistance - 1)) + 1) / osuCurrObj.StrainTime;
                 // else
-                double velocity = 1;
-                if (osuCurrObj.JumpDistance < .1)
-                  velocity = osuCurrObj.JumpDistance / osuCurrObj.StrainTime;
-                else
-                  velocity = Math.Pow(osuCurrObj.JumpDistance, 1.5) / osuCurrObj.StrainTime;
+                double velocity = osuCurrObj.JumpDistance / osuCurrObj.StrainTime;
 
                 double velChangeBonus = Math.Min(1, osuPrevObj.JumpDistance) * Math.Abs(currVector.Length - prevVector.Length) * priorProb;
                 priorProb = flowProb;
@@ -103,8 +101,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 // add them to get our final velocity, length is the observed velocity and thus the difficulty.
               //  var adjVelocity = Vector2.Subtract(currVector, Vector2.Multiply(prevVector, prevMultiplier)).Length;
 
-        //        if (osuPrevObj.Angle < degrees75 && osuCurrObj.Angle < degrees75 && osuNextObj.Angle < degrees75)
-      //            adjVelocity = Vector2.Add(currVector, Vector2.Multiply(prevVector, prevMultiplier)).Length;
+               if (osuPrevObj.Angle < degrees45 && osuCurrObj.Angle < degrees45 && osuNextObj.Angle < degrees45)
+                 angleBuff = 0;
 
                 strain = (sliderVelocity + Math.Sqrt(velocity * sliderVelocity)
                 + velChangeBonus + velocity * (1 + 1 * angleBuff * Math.Min(1, osuPrevObj.JumpDistance))) * flowProb;
