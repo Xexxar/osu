@@ -20,9 +20,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
         private int count = -1;
 
-        protected override double SkillMultiplier => 2000;
+        protected override double SkillMultiplier => 1400;
         protected override double StrainDecayBase => StrainDecay;
-        protected override double StarMultiplierPerRepeat => 1.05;
+        protected override double StarMultiplierPerRepeat => 1.075;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
@@ -45,7 +45,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
                 if (osuNextObj.BaseObject.Radius < 30)
                 {
-                    smallCSBuff = 1 + (30 - (float)osuNextObj.BaseObject.Radius) / 50;
+                    smallCSBuff = 1 + (30 - (float)osuNextObj.BaseObject.Radius) / 30;
                 }
 
                 // Here we set a custom strain decay rate that decays based on # of objects rather than MS.
@@ -75,26 +75,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
               //  var prevVector = Vector2.Multiply(Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime), prevMultiplier);
                 var currVector = Vector2.Divide(osuCurrObj.DistanceVector, (float)osuCurrObj.StrainTime);
 
-                double sliderVelocity = 0;
-                if (osuPrevObj.BaseObject is Slider osuSlider)
-                  sliderVelocity = (Math.Max(osuSlider.LazyTravelDistance, 1) / 50) / (50 + osuSlider.LazyTravelTime);
-
-                // double adjVelocity = 0;
-                //
-                // // add them to get our final velocity, length is the observed velocity and thus the difficulty.
-                // if (osuCurrObj.Angle < degree30)
-                //   adjVelocity = Math.Abs(currVector.Length - prevVector.Length);
-                // else
-                // {
-                //   var prevVectorRotPos = new Vector2(prevVector.X * (float)Math.Cos(degree30) + prevVector.Y * (float)Math.Cos(degree30),
-                //                              prevVector.X * (float)Math.Sin(degree30) + prevVector.Y * (float)Math.Sin(degree30));
-                //   var prevVectorRotNeg = new Vector2(prevVector.X * (float)Math.Cos(0 - degree30) + prevVector.Y * (float)Math.Cos(0 - degree30),
-                //                              prevVector.X * (float)Math.Sin(0 - degree30) + prevVector.Y * (float)Math.Sin(0 - degree30));
-                //   adjVelocity = Math.Min(currVector.Length, Math.Min(Vector2.Add(currVector, prevVectorRotPos).Length, Vector2.Add(currVector,prevVectorRotNeg).Length));
-                // }
-                //
-                // adjVelocity = adjVelocity / ((osuCurrObj.StrainTime - 40) / osuCurrObj.StrainTime);
-
                 double angleBuff = 0.0;
                 double angle = (double)osuCurrObj.Angle;
 
@@ -105,7 +85,11 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 else
                   angleBuff = Math.Pow(Math.Sin(angle - Math.PI / 4), 2);
 
-                double velocity = currVector.Length * osuCurrObj.StrainTime / (osuCurrObj.StrainTime - 45);
+                double velocity = currVector.Length * Math.Pow(osuCurrObj.StrainTime / (osuCurrObj.StrainTime - 45), 1.75);
+
+                double sliderVelocity = 0;
+                if (osuPrevObj.BaseObject is Slider osuSlider)
+                  sliderVelocity = (Math.Max(osuSlider.LazyTravelDistance, 1) / 50) / (50 + osuSlider.LazyTravelTime);
 
                 strain = (velocity * (.6 + .3 * angleBuff * Math.Min(1, osuPrevObj.JumpDistance))
                         + sliderVelocity

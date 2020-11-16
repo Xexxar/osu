@@ -21,9 +21,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private double priorProb = 0;
         private int count = -1;
 
-        protected override double SkillMultiplier => 2250;
+        protected override double SkillMultiplier => 2000;
         protected override double StrainDecayBase => StrainDecay;
-        protected override double StarMultiplierPerRepeat => 1.05;
+        protected override double StarMultiplierPerRepeat => 1.075;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
@@ -46,7 +46,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
                 if (osuNextObj.BaseObject.Radius < 30)
                 {
-                    smallCSBuff = 1 + (30 - (float)osuNextObj.BaseObject.Radius) / 50;
+                    smallCSBuff = 1 + (30 - (float)osuNextObj.BaseObject.Radius) / 30;
                 }
 
                 var prevVector = Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime);
@@ -84,11 +84,15 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 else
                   angleBuff = Math.Pow(Math.Sin(3 * Math.PI / 4 - angle), 2);
 
-                double velocity = 0;
-                if (osuCurrObj.JumpDistance < 1)
-                  velocity = (Math.Sin((Math.PI / 2) * (osuCurrObj.JumpDistance - 1)) + 1) / osuCurrObj.StrainTime;
+                // double velocity = 0;
+                // if (osuCurrObj.JumpDistance < 1)
+                //   velocity = (Math.Sin((Math.PI / 2) * (osuCurrObj.JumpDistance - 1)) + 1) / osuCurrObj.StrainTime;
+                // else
+                double velocity = 1;
+                if (osuCurrObj.JumpDistance < .1)
+                  velocity = osuCurrObj.JumpDistance / osuCurrObj.StrainTime;
                 else
-                  velocity = osuCurrObj.JumpDistance / osuCurrObj.StrainTime;// * osuCurrObj.StrainTime / (osuCurrObj.StrainTime - 15);
+                  velocity = Math.Pow(osuCurrObj.JumpDistance, 1.5) / osuCurrObj.StrainTime;
 
                 double velChangeBonus = Math.Min(1, osuPrevObj.JumpDistance) * Math.Abs(currVector.Length - prevVector.Length) * priorProb;
                 priorProb = flowProb;

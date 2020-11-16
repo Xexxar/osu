@@ -19,7 +19,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private const float prevMultiplier = 0.45f;
         protected override double SkillMultiplier => 2500;
         protected override double StrainDecayBase => StrainDecay;
-        protected override double StarMultiplierPerRepeat => 1.05;
+        protected override double StarMultiplierPerRepeat => 1.075;
 
         private int count = -1;
 
@@ -50,7 +50,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
                 if (osuNextObj.BaseObject.Radius < 30)
                 {
-                    smallCSBuff = 1 + (30 - (float)osuNextObj.BaseObject.Radius) / 50;
+                    smallCSBuff = 1 + (30 - (float)osuNextObj.BaseObject.Radius) / 30;
                 }
 
                 // Here we set a custom strain decay rate that decays based on # of objects rather than MS.
@@ -98,16 +98,12 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 double grayStrain = currVector.Length * grayProb;
 
                 double snapVelocity = currVector.Length * osuCurrObj.StrainTime / (osuCurrObj.StrainTime - 45);
-                double flowVelocity = 0;
-                if (osuCurrObj.JumpDistance < 1)
-                  flowVelocity = (Math.Sin((Math.PI / 2) * (osuCurrObj.JumpDistance - 1)) + 1) / osuCurrObj.StrainTime;
-                else
-                  flowVelocity = osuCurrObj.JumpDistance / osuCurrObj.StrainTime;
+                double flowVelocity = osuCurrObj.JumpDistance / osuCurrObj.StrainTime;
 
                 double snapStrain = snapVelocity * (.6 + .3 * angleBuff * Math.Min(1, osuPrevObj.JumpDistance)) ;
                 double flowStrain = flowVelocity * (1.0 + 1.0 * (1 - angleBuff) * Math.Min(1, osuPrevObj.JumpDistance));
 
-                strain = 27.5 * Math.Max(diffSnapProb * flowStrainPrior * snapStrain, diffFlowProb * flowStrain * snapStrainPrior);
+                strain = 30 * Math.Max(diffSnapProb * flowStrainPrior * snapStrain, diffFlowProb * flowStrain * snapStrainPrior);
                 strain = Math.Max(grayStrain, strain);
 
                 flowStrainPrior = flowStrain;

@@ -16,7 +16,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private double StrainDecay = 0.9;
         protected override double SkillMultiplier => 700;
         protected override double StrainDecayBase => StrainDecay;
-        protected override double StarMultiplierPerRepeat => 1.05;
+        protected override double StarMultiplierPerRepeat => 1.025;
 
         private int repeatStrainCount = 0;
 
@@ -56,7 +56,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
                 double variantStrain = 0;
                 if (repeatStrainCount % 2 == 0)
-                  variantStrain = 1.25 * (1 / strainTime) * Math.Pow(.95, repeatStrainCount);
+                  variantStrain = (1 / strainTime) * Math.Pow(.9, repeatStrainCount);
 
                 strain = Math.Max(snapProb * (1 / strainTime), (1-snapProb) * variantStrain);
             }

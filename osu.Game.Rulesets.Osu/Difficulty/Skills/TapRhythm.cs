@@ -14,7 +14,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     public class TapRhythm : OsuSkill
     {
         private double StrainDecay = 0.5;
-        protected override double SkillMultiplier => 112.5;
+        protected override double SkillMultiplier => 120;
         protected override double StrainDecayBase => StrainDecay;
         protected override double StarMultiplierPerRepeat => 1.05;
 
