@@ -14,7 +14,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// </summary>
     public class AimFlow : OsuSkill
     {
-        private double StrainDecay = 0.25;
+        public override double strainDecay(double ms) => Math.Pow(.925, 1000.0 / Math.Min(ms, 500.0));
         private const float prevMultiplier = 0.45f;
         private const double degrees45 = Math.PI / 4;
 
@@ -22,14 +22,13 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private int count = -1;
 
         protected override double SkillMultiplier => 1750;
-        protected override double StrainDecayBase => StrainDecay;
+        protected override double StrainDecayBase => 0;
         protected override double StarMultiplierPerRepeat => 1.05;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
             count++;
             double smallCSBuff = 1.0;
-            StrainDecay = .25;
 
             if (current.BaseObject is Spinner)
                 return 0;
@@ -52,8 +51,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 var prevVector = Vector2.Divide(osuPrevObj.DistanceVector, (float)osuPrevObj.StrainTime);
                 var currVector = Vector2.Divide(osuCurrObj.DistanceVector, (float)osuCurrObj.StrainTime);
                 var nextVector = Vector2.Divide(osuNextObj.DistanceVector, (float)osuNextObj.StrainTime);
-
-                StrainDecay = Math.Pow(.925, 1000.0 / Math.Min(osuCurrObj.StrainTime, 500.0));
 
                 // Here we set a custom strain decay rate that decays based on # of objects rather than MS.
                 // This is just so we can focus on balancing only the strain rewarded, and time no longer matters.

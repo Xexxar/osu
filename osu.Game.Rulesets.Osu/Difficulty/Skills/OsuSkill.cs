@@ -104,8 +104,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         public override void Process(DifficultyHitObject current)
         {
             currentStrain *= strainDecay(current.DeltaTime);
-            grapher.Add(Tuple.Create(current.BaseObject.StartTime / 1000, SkillMultiplier * StrainValueOf(current) * strainDecay(current.DeltaTime)));
             currentStrain += StrainValueOf(current) * SkillMultiplier;
+            grapher.Add(Tuple.Create(current.BaseObject.StartTime / 1000, currentStrain));
 
             const double legacy_scaling_factor = 10;
             double stars = Math.Sqrt(currentStrain * legacy_scaling_factor) * difficulty_multiplier;
@@ -197,7 +197,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             calculateMissStarRating();
         }
 
-        private double strainDecay(double ms) => Math.Pow(StrainDecayBase, ms / 1000);
+        public abstract double strainDecay(double ms);
 
         /// <summary>
         /// Get skill to fc easiest section with e.g. 5% combo, 10%, 15%, ... 100% combo.
