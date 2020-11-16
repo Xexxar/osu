@@ -104,7 +104,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         public override void Process(DifficultyHitObject current)
         {
             currentStrain *= strainDecay(current.DeltaTime);
-            grapher.Add(Tuple.Create(current.BaseObject.StartTime, StrainValueOf(current) * strainDecay(current.DeltaTime)));
+            grapher.Add(Tuple.Create(current.BaseObject.StartTime / 1000, SkillMultiplier * StrainValueOf(current) * strainDecay(current.DeltaTime)));
             currentStrain += StrainValueOf(current) * SkillMultiplier;
 
             const double legacy_scaling_factor = 10;
