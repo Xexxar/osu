@@ -17,9 +17,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     {
         public override double strainDecay(double ms) => Math.Pow(.4, ms / 1000);
         private const float prevMultiplier = 0.65f;
-        protected override double SkillMultiplier => 1;
+        protected override double SkillMultiplier => 1.2;
         protected override double StrainDecayBase => 0;
-        protected override double StarMultiplierPerRepeat => 1.075;
+        protected override double StarMultiplierPerRepeat => 1.05;
         private const double degrees45 = Math.PI / 4;
         private double priorProb = 0;
 
@@ -115,7 +115,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
               double flowStrain = (sliderVelocity + Math.Sqrt(flowVelocity * sliderVelocity)
               + velChangeBonus + flowVelocity * (1 + 1 * flowAngleBuff * Math.Min(1, osuPrevObj.JumpDistance)));
 
-              strain = flowStrain * 1850 * flowProb +  2500 * snapStrain * snapProb;
+              strain = flowStrain * 1850 * flowProb +  2150 * snapStrain * snapProb;
           }
 
           return smallCSBuff * strain;
