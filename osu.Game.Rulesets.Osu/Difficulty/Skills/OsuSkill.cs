@@ -173,20 +173,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             Difficulty = Math.Pow(total, 1 / starBonusK);
 
-            using (StreamWriter outputFile = new StreamWriter(beatmapid + this.GetType().Name.ToLower() + ".txt"))
-            {
-                foreach (Tuple<double, double> point in grapher)
-                    outputFile.WriteLine(point);
-            }
-            if (this.GetType().Name.ToLower() == "aimcontrol")
-            {
-                using (StreamWriter outputFile = new StreamWriter(beatmapid + "test.txt"))
-                {
-                    foreach (Tuple<double, double> point in test)
-                        outputFile.WriteLine(point);
-                }
-            }
-
             calculateSkillToFcSubsets(difficultyPartialSums);
 
             for (int i = 0; i < ComboStarRatings.Count; i++)
