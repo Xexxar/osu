@@ -13,8 +13,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// </summary>
     public class TapStamina : OsuSkill
     {
-        public override double strainDecay(double ms) => Math.Pow(.995, 1000.0 / Math.Min(ms, 200.0));
-        protected override double SkillMultiplier => 2.5;
+        public override double strainDecay(double ms) => Math.Pow(.9, ms / 1000);
+        protected override double SkillMultiplier => 4;
         protected override double StrainDecayBase => 0;
         protected override double StarMultiplierPerRepeat => 1.01;
 
@@ -54,7 +54,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                   repeatStrainCount++;
 
                 if (repeatStrainCount % 2 == 0)
-                  strain = Math.Pow(75 / strainTime, 2.5);
+                  strain = 75 / strainTime;
             }
 
             return strain;

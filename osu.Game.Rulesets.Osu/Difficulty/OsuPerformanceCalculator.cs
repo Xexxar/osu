@@ -32,8 +32,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         private int countMeh;
         private int countMiss;
         private const double combo_weight = 0.5;
-        private const double aim_pp_factor = 1.1f;
-        private const double tapSpeed_pp_factor = 1.1f;
+        private const double aim_pp_factor = 1.0f;
+        private const double tapSpeed_pp_factor = 1.25f;
         private const double total_factor = 1.1f;
         private const double skills_factor = 1.1f;
 

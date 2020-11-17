@@ -14,17 +14,16 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// </summary>
     public class AimSnap : OsuSkill
     {
-        public override double strainDecay(double ms) => Math.Pow(.85, 1000.0 / Math.Min(ms, 500.0));
+        public override double strainDecay(double ms) => Math.Pow(.4, ms / 1000);
 
-        private int count = -1;
+      //  private int count = -1;
 
-        protected override double SkillMultiplier => 1700;
+        protected override double SkillMultiplier => 2000;
         protected override double StrainDecayBase => 0;
         protected override double StarMultiplierPerRepeat => 1.05;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
-            count++;
             double smallCSBuff = 1.0;
 
             if (current.BaseObject is Spinner)
@@ -45,9 +44,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                     smallCSBuff = 1 + (30 - (float)osuNextObj.BaseObject.Radius) / 30;
                 }
 
-                // Here we set a custom strain decay rate that decays based on # of objects rather than MS.
-                // This is just so we can focus on balancing only the strain rewarded, and time no longer matters.
-                // this will make a repeated pattern "cap out" or reach 85 maximum difficulty in 12 objects.
 
                 // here we generate a value of being snappy or flowy that is fed into the gauss error function to build a probability.
                 double snapProb = 0;
@@ -81,7 +77,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 else
                   angleBuff = Math.Pow(Math.Sin(angle - Math.PI / 4), 2);
 
-                double velocity = currVector.Length * Math.Pow(osuCurrObj.StrainTime / (osuCurrObj.StrainTime - 45), 1.5);
+                double velocity = currVector.Length;// * osuCurrObj.StrainTime / (osuCurrObj.StrainTime - 25);
 
                 double sliderVelocity = 0;
                 if (osuPrevObj.BaseObject is Slider osuSlider)
@@ -94,7 +90,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             }
 
-            return smallCSBuff * strain;
+            return 0;// smallCSBuff * strain;
 
         }
 
