@@ -32,7 +32,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         private int countMeh;
         private int countMiss;
         private const double combo_weight = 0.5;
-        private const double aim_pp_factor = 1.0f;
+        private const double aim_pp_factor = 1.1f;
+        private const double aimtech_pp_factor = 2f;
         private const double tapSpeed_pp_factor = 1.25f;
         private const double total_factor = 1.1f;
         private const double skills_factor = 1.1f;
@@ -80,6 +81,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             double tapRhythmValue = computeTapRhythmValue(categoryRatings);
             double accuracyValue = computeAccuracyValue(categoryRatings);
 
+            // double totalRawAimValue = aim_multiplier * Math.Pow(
+            //     Math.Pow(aimSnapValue, aim_pp_factor) +
+            //     Math.Pow(aimFlowValue, aim_pp_factor), 1.0f / aim_pp_factor);
+
             double totalAimValue = aim_multiplier * Math.Pow(
                 Math.Pow(aimSnapValue, aim_pp_factor) +
                 Math.Pow(aimFlowValue, aim_pp_factor) +
@@ -116,7 +121,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 categoryRatings.Add("Total Star Rating", 0.0675f * (Math.Pow(300000.0f * totalValue, 1.0f / 3.0f) + 4.0f) / 5.0f);
                 categoryRatings.Add("Aim Snap pp", aimSnapValue);
                 categoryRatings.Add("Aim Flow pp", aimFlowValue);
-                categoryRatings.Add("Aim Hybrid pp", aimHybridValue);
+                categoryRatings.Add("Aim Hybrid pp", aimHybridValue );
                 categoryRatings.Add("Tap Stamina pp", tapTapStaminaValue);
                 categoryRatings.Add("Tap Speed pp", tapSpeedValue);
                 categoryRatings.Add("Tap Rhythm pp", tapRhythmValue);
@@ -283,7 +288,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             // We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
             if (mods.Any(m => m is OsuModHidden))
-                aimHybridValue *= 1.0f + 0.05f * (12.0f - Attributes.ApproachRate);
+               aimHybridValue *= 1.0f + 0.05f * (12.0f - Attributes.ApproachRate);
 
             // Scale the control aim value with accuracy
             double accScale = 0.5f + Math.Pow(Math.Sin(Math.Max(0.0f, Math.PI * (accuracy - 0.75f))), 2.0f);

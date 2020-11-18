@@ -30,7 +30,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         /// <summary>
         /// Star multiplier from legacy difficulty calc
         /// </summary>
-        private const double difficulty_multiplier = 0.0675;
+        protected const double difficulty_multiplier = 0.0675;
 
         /// <summary>
         /// Repeating a section multiplies difficulty by this factor
@@ -38,7 +38,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         /// </summary>
         protected abstract double StarMultiplierPerRepeat { get; }
 
-        private double starBonusK => 1 / Math.Log(StarMultiplierPerRepeat, 2);
+        protected double starBonusK => 1 / Math.Log(StarMultiplierPerRepeat, 2);
 
         /// <summary>
         /// Constant difficulty sections of this length match old difficulty values.
@@ -79,10 +79,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         /// </summary>
         private const int difficulty_count = 20;
 
-        private double currentStrain = 1; // We keep track of the strain level at all times throughout the beatmap.
+        protected double currentStrain = 0; // We keep track of the strain level at all times throughout the beatmap.
 
-        private readonly List<double> powDifficulties = new List<double>(); // list of difficulty^k for each note
-        private readonly List<double> timestamps = new List<double>(); // list of timestamps for each note
+        protected readonly List<double> powDifficulties = new List<double>(); // list of difficulty^k for each note
+        protected readonly List<double> timestamps = new List<double>(); // list of timestamps for each note
         public List<Tuple<double, double>> grapher = new List<Tuple<double, double>>();
         public List<Tuple<double, double>> test = new List<Tuple<double, double>>();
         private double fcProb;
@@ -139,7 +139,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         /// <summary>
         /// Apply note duration scaling to the last hit object
         /// </summary>
-        private void scaleLastHitObject(double t = double.PositiveInfinity)
+        protected void scaleLastHitObject(double t = double.PositiveInfinity)
         {
             if (powDifficulties.Count != 0)
                 powDifficulties[powDifficulties.Count - 1] *= Math.Min(t, MaxStrainTime) / StarBonusBaseTime;
@@ -172,20 +172,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             }
 
             Difficulty = Math.Pow(total, 1 / starBonusK);
-
-            using (StreamWriter outputFile = new StreamWriter(beatmapid + this.GetType().Name.ToLower() + ".txt"))
-            {
-                foreach (Tuple<double, double> point in grapher)
-                    outputFile.WriteLine(point);
-            }
-            if (this.GetType().Name.ToLower() == "aimcontrol")
-            {
-                using (StreamWriter outputFile = new StreamWriter(beatmapid + "test.txt"))
-                {
-                    foreach (Tuple<double, double> point in test)
-                        outputFile.WriteLine(point);
-                }
-            }
 
             calculateSkillToFcSubsets(difficultyPartialSums);
 
