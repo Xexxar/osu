@@ -108,9 +108,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             "\nHybrid Aim: " + Math.Round(aimHybridRating, 2) +
             "\nTap Rhythm: " + Math.Round(tapRhythmRating, 2);
 
-            using (StreamWriter outputFile = new StreamWriter(beatmap.BeatmapInfo.OnlineBeatmapID + "values.txt"))
-                outputFile.WriteLine(values);
-
             return new OsuDifficultyAttributes
             {
                 StarRating = starRating,
