@@ -1,6 +1,8 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
+using System;
+using System.Diagnostics;
 using osu.Framework.Bindables;
 using osu.Framework.Configuration;
 using osu.Framework.Configuration.Tracking;
@@ -8,6 +10,7 @@ using osu.Framework.Extensions;
 using osu.Framework.Platform;
 using osu.Framework.Testing;
 using osu.Game.Input;
+using osu.Game.Input.Bindings;
 using osu.Game.Overlays;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Screens.Select;
@@ -41,6 +44,8 @@ namespace osu.Game.Configuration
             // Online settings
             Set(OsuSetting.Username, string.Empty);
             Set(OsuSetting.Token, string.Empty);
+
+            Set(OsuSetting.AutomaticallyDownloadWhenSpectating, false);
 
             Set(OsuSetting.SavePassword, false).ValueChanged += enabled =>
             {
@@ -131,6 +136,9 @@ namespace osu.Game.Configuration
             Set(OsuSetting.IntroSequence, IntroSequence.Triangles);
 
             Set(OsuSetting.MenuBackgroundSource, BackgroundSource.Skin);
+            Set(OsuSetting.SeasonalBackgroundMode, SeasonalBackgroundMode.Sometimes);
+
+            Set(OsuSetting.EditorWaveformOpacity, 1f);
         }
 
         public OsuConfigManager(Storage storage)
@@ -167,12 +175,28 @@ namespace osu.Game.Configuration
             }
         }
 
-        public override TrackedSettings CreateTrackedSettings() => new TrackedSettings
+        public override TrackedSettings CreateTrackedSettings()
         {
-            new TrackedSetting<bool>(OsuSetting.MouseDisableButtons, v => new SettingDescription(!v, "gameplay mouse buttons", v ? "disabled" : "enabled")),
-            new TrackedSetting<HUDVisibilityMode>(OsuSetting.HUDVisibilityMode, m => new SettingDescription(m, "HUD Visibility", m.GetDescription())),
-            new TrackedSetting<ScalingMode>(OsuSetting.Scaling, m => new SettingDescription(m, "scaling", m.GetDescription())),
-        };
+            // these need to be assigned in normal game startup scenarios.
+            Debug.Assert(LookupKeyBindings != null);
+            Debug.Assert(LookupSkinName != null);
+
+            return new TrackedSettings
+            {
+                new TrackedSetting<bool>(OsuSetting.MouseDisableButtons, v => new SettingDescription(!v, "gameplay mouse buttons", v ? "disabled" : "enabled", LookupKeyBindings(GlobalAction.ToggleGameplayMouseButtons))),
+                new TrackedSetting<HUDVisibilityMode>(OsuSetting.HUDVisibilityMode, m => new SettingDescription(m, "HUD Visibility", m.GetDescription(), $"cycle: {LookupKeyBindings(GlobalAction.ToggleInGameInterface)} quick view: {LookupKeyBindings(GlobalAction.HoldForHUD)}")),
+                new TrackedSetting<ScalingMode>(OsuSetting.Scaling, m => new SettingDescription(m, "scaling", m.GetDescription())),
+                new TrackedSetting<int>(OsuSetting.Skin, m =>
+                {
+                    string skinName = LookupSkinName(m) ?? string.Empty;
+                    return new SettingDescription(skinName, "skin", skinName, $"random: {LookupKeyBindings(GlobalAction.RandomSkin)}");
+                })
+            };
+        }
+
+        public Func<int, string> LookupSkinName { private get; set; }
+
+        public Func<GlobalAction, string> LookupKeyBindings { get; set; }
     }
 
     public enum OsuSetting
@@ -240,5 +264,8 @@ namespace osu.Game.Configuration
         HitLighting,
         MenuBackgroundSource,
         GameplayDisableWinKey,
+        SeasonalBackgroundMode,
+        EditorWaveformOpacity,
+        AutomaticallyDownloadWhenSpectating,
     }
 }

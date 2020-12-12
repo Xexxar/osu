@@ -21,6 +21,7 @@ using osu.Game.Screens.Multi.Play;
 using osu.Game.Screens.Multi.Ranking;
 using osu.Game.Screens.Play;
 using osu.Game.Screens.Select;
+using osu.Game.Users;
 using Footer = osu.Game.Screens.Multi.Match.Components.Footer;
 
 namespace osu.Game.Screens.Multi.Match
@@ -60,6 +61,7 @@ namespace osu.Game.Screens.Multi.Match
         public MatchSubScreen(Room room)
         {
             Title = room.RoomID.Value == null ? "New room" : room.Name.Value;
+            Activity.Value = new UserActivity.InLobby(room);
         }
 
         [BackgroundDependencyLoader]
@@ -133,7 +135,7 @@ namespace osu.Game.Screens.Multi.Match
                                                                 RelativeSizeAxes = Axes.Both,
                                                                 Content = new[]
                                                                 {
-                                                                    new Drawable[] { new OverlinedHeader("Playlist"), },
+                                                                    new Drawable[] { new OverlinedPlaylistHeader(), },
                                                                     new Drawable[]
                                                                     {
                                                                         new DrawableRoomPlaylistWithResults

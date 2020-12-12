@@ -199,7 +199,7 @@ namespace osu.Game.Screens.Play
             if (!ScoreProcessor.Mode.Disabled)
                 config.BindWith(OsuSetting.ScoreDisplayMode, ScoreProcessor.Mode);
 
-            InternalChild = GameplayClockContainer = new GameplayClockContainer(Beatmap.Value, DrawableRuleset.GameplayStartTime);
+            InternalChild = GameplayClockContainer = CreateGameplayClockContainer(Beatmap.Value, DrawableRuleset.GameplayStartTime);
 
             AddInternal(gameplayBeatmap = new GameplayBeatmap(playableBeatmap));
             AddInternal(screenSuspension = new ScreenSuspensionHandler(GameplayClockContainer));
@@ -238,6 +238,14 @@ namespace osu.Game.Screens.Play
                 skipOverlay.Hide();
             }
 
+            DrawableRuleset.FrameStableClock.WaitingOnFrames.BindValueChanged(waiting =>
+            {
+                if (waiting.NewValue)
+                    GameplayClockContainer.Stop();
+                else
+                    GameplayClockContainer.Start();
+            });
+
             DrawableRuleset.IsPaused.BindValueChanged(paused =>
             {
                 updateGameplayState();
@@ -253,14 +261,14 @@ namespace osu.Game.Screens.Play
             // bind clock into components that require it
             DrawableRuleset.IsPaused.BindTo(GameplayClockContainer.IsPaused);
 
-            DrawableRuleset.OnNewResult += r =>
+            DrawableRuleset.NewResult += r =>
             {
                 HealthProcessor.ApplyResult(r);
                 ScoreProcessor.ApplyResult(r);
                 gameplayBeatmap.ApplyResult(r);
             };
 
-            DrawableRuleset.OnRevertResult += r =>
+            DrawableRuleset.RevertResult += r =>
             {
                 HealthProcessor.RevertResult(r);
                 ScoreProcessor.RevertResult(r);
@@ -280,6 +288,8 @@ namespace osu.Game.Screens.Play
             IsBreakTime.BindValueChanged(onBreakTimeChanged, true);
         }
 
+        protected virtual GameplayClockContainer CreateGameplayClockContainer(WorkingBeatmap beatmap, double gameplayStart) => new GameplayClockContainer(beatmap, gameplayStart);
+
         private Drawable createUnderlayComponents() =>
             DimmableStoryboard = new DimmableStoryboard(Beatmap.Value.Storyboard) { RelativeSizeAxes = Axes.Both };
 
@@ -292,12 +302,12 @@ namespace osu.Game.Screens.Play
                     {
                         ScoreProcessor,
                         HealthProcessor,
+                        new ComboEffects(ScoreProcessor),
                         breakTracker = new BreakTracker(DrawableRuleset.GameplayStartTime, ScoreProcessor)
                         {
                             Breaks = working.Beatmap.Breaks
                         }
                     }),
-                new ComboEffects(ScoreProcessor)
             }
         };
 
@@ -329,7 +339,11 @@ namespace osu.Game.Screens.Play
                         AlwaysVisible = { BindTarget = DrawableRuleset.HasReplayLoaded },
                         IsCounting = false
                     },
-                    RequestSeek = GameplayClockContainer.Seek,
+                    RequestSeek = time =>
+                    {
+                        GameplayClockContainer.Seek(time);
+                        GameplayClockContainer.Start();
+                    },
                     Anchor = Anchor.Centre,
                     Origin = Anchor.Centre
                 },
@@ -535,7 +549,7 @@ namespace osu.Game.Screens.Play
 
         protected override bool OnScroll(ScrollEvent e) => mouseWheelDisabled.Value && !GameplayClockContainer.IsPaused.Value;
 
-        protected virtual ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score);
+        protected virtual ResultsScreen CreateResults(ScoreInfo score) => new SoloResultsScreen(score, true);
 
         #region Fail Logic
 

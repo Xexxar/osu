@@ -371,25 +371,58 @@ namespace osu.Game.Skinning
                 }
 
                 case GameplaySkinComponent<HitResult> resultComponent:
-                    switch (resultComponent.Component)
+                    Func<Drawable> createDrawable = () => getJudgementAnimation(resultComponent.Component);
+
+                    // kind of wasteful that we throw this away, but should do for now.
+                    if (createDrawable() != null)
                     {
-                        case HitResult.Miss:
-                            return this.GetAnimation("hit0", true, false);
-
-                        case HitResult.Meh:
-                            return this.GetAnimation("hit50", true, false);
-
-                        case HitResult.Ok:
-                            return this.GetAnimation("hit100", true, false);
-
-                        case HitResult.Great:
-                            return this.GetAnimation("hit300", true, false);
+                        if (Configuration.LegacyVersion > 1)
+                            return new LegacyJudgementPieceNew(resultComponent.Component, createDrawable, getParticleTexture(resultComponent.Component));
+                        else
+                            return new LegacyJudgementPieceOld(resultComponent.Component, createDrawable);
                     }
 
                     break;
             }
 
             return this.GetAnimation(component.LookupName, false, false);
+        }
+
+        private Texture getParticleTexture(HitResult result)
+        {
+            switch (result)
+            {
+                case HitResult.Meh:
+                    return GetTexture("particle50");
+
+                case HitResult.Ok:
+                    return GetTexture("particle100");
+
+                case HitResult.Great:
+                    return GetTexture("particle300");
+            }
+
+            return null;
+        }
+
+        private Drawable getJudgementAnimation(HitResult result)
+        {
+            switch (result)
+            {
+                case HitResult.Miss:
+                    return this.GetAnimation("hit0", true, false);
+
+                case HitResult.Meh:
+                    return this.GetAnimation("hit50", true, false);
+
+                case HitResult.Ok:
+                    return this.GetAnimation("hit100", true, false);
+
+                case HitResult.Great:
+                    return this.GetAnimation("hit300", true, false);
+            }
+
+            return null;
         }
 
         public override Texture GetTexture(string componentName, WrapMode wrapModeS, WrapMode wrapModeT)
@@ -417,10 +450,14 @@ namespace osu.Game.Skinning
 
         public override SampleChannel GetSample(ISampleInfo sampleInfo)
         {
-            var lookupNames = sampleInfo.LookupNames;
+            IEnumerable<string> lookupNames;
 
             if (sampleInfo is HitSampleInfo hitSample)
                 lookupNames = getLegacyLookupNames(hitSample);
+            else
+            {
+                lookupNames = sampleInfo.LookupNames.SelectMany(getFallbackNames);
+            }
 
             foreach (var lookup in lookupNames)
             {
@@ -433,6 +470,27 @@ namespace osu.Game.Skinning
             return null;
         }
 
+        private IEnumerable<string> getLegacyLookupNames(HitSampleInfo hitSample)
+        {
+            var lookupNames = hitSample.LookupNames.SelectMany(getFallbackNames);
+
+            if (!UseCustomSampleBanks && !string.IsNullOrEmpty(hitSample.Suffix))
+            {
+                // for compatibility with stable, exclude the lookup names with the custom sample bank suffix, if they are not valid for use in this skin.
+                // using .EndsWith() is intentional as it ensures parity in all edge cases
+                // (see LegacyTaikoSampleInfo for an example of one - prioritising the taiko prefix should still apply, but the sample bank should not).
+                lookupNames = lookupNames.Where(name => !name.EndsWith(hitSample.Suffix, StringComparison.Ordinal));
+            }
+
+            foreach (var l in lookupNames)
+                yield return l;
+
+            // also for compatibility, try falling back to non-bank samples (so-called "universal" samples) as the last resort.
+            // going forward specifying banks shall always be required, even for elements that wouldn't require it on stable,
+            // which is why this is done locally here.
+            yield return hitSample.Name;
+        }
+
         private IEnumerable<string> getFallbackNames(string componentName)
         {
             // May be something like "Gameplay/osu/approachcircle" from lazer, or "Arrows/note1" from a user skin.
@@ -441,24 +499,6 @@ namespace osu.Game.Skinning
             // Fall back to using the last piece for components coming from lazer (e.g. "Gameplay/osu/approachcircle" -> "approachcircle").
             string lastPiece = componentName.Split('/').Last();
             yield return componentName.StartsWith("Gameplay/taiko/", StringComparison.Ordinal) ? "taiko-" + lastPiece : lastPiece;
-        }
-
-        private IEnumerable<string> getLegacyLookupNames(HitSampleInfo hitSample)
-        {
-            var lookupNames = hitSample.LookupNames;
-
-            if (!UseCustomSampleBanks && !string.IsNullOrEmpty(hitSample.Suffix))
-                // for compatibility with stable, exclude the lookup names with the custom sample bank suffix, if they are not valid for use in this skin.
-                // using .EndsWith() is intentional as it ensures parity in all edge cases
-                // (see LegacyTaikoSampleInfo for an example of one - prioritising the taiko prefix should still apply, but the sample bank should not).
-                lookupNames = hitSample.LookupNames.Where(name => !name.EndsWith(hitSample.Suffix, StringComparison.Ordinal));
-
-            // also for compatibility, try falling back to non-bank samples (so-called "universal" samples) as the last resort.
-            // going forward specifying banks shall always be required, even for elements that wouldn't require it on stable,
-            // which is why this is done locally here.
-            lookupNames = lookupNames.Append(hitSample.Name);
-
-            return lookupNames;
         }
     }
 }
