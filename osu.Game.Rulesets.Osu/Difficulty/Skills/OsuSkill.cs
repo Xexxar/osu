@@ -79,7 +79,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         /// </summary>
         private const int difficulty_count = 20;
 
-        protected double currentStrain = 0; // We keep track of the strain level at all times throughout the beatmap.
+        protected double currentStrain; // We keep track of the strain level at all times throughout the beatmap.
 
         protected readonly List<double> powDifficulties = new List<double>(); // list of difficulty^k for each note
         protected readonly List<double> timestamps = new List<double>(); // list of timestamps for each note

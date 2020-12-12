@@ -10,40 +10,19 @@ namespace osu.Game.Rulesets.Osu.Difficulty
     {
         public double MissStarRatingIncrement;
         public double MissStarRatingExponent;
-
-        public double AimRating;
-        public double TapSpeedRating;
-
-        public double AimSnapStrain;
-        public IList<double> AimSnapComboStarRatings;
-        public IList<double> AimSnapMissCounts;
-
-        public double AimFlowStrain;
-        public IList<double> AimFlowComboStarRatings;
-        public IList<double> AimFlowMissCounts;
-
-        public double TapStaminaStrain;
-        public IList<double> TapStaminaComboStarRatings;
-        public IList<double> TapStaminaMissCounts;
-
-        public double TapSpeedStrain;
-        public IList<double> TapSpeedComboStarRatings;
-        public IList<double> TapSpeedMissCounts;
-
-        public double AimHybridStrain;
-        public IList<double> AimHybridComboStarRatings;
-        public IList<double> AimHybridMissCounts;
-
-        public double TapRhythmStrain;
-        public IList<double> TapRhythmComboStarRatings;
-        public IList<double> TapRhythmMissCounts;
-
-        public double AccuracyStrain;
+        public double AimStrain;
+        public IList<double> AimComboStarRatings;
+        public IList<double> AimMissCounts;
+        public double SpeedStrain;
+        public IList<double> SpeedComboStarRatings;
+        public IList<double> SpeedMissCounts;
 
         public double ApproachRate;
         public double OverallDifficulty;
-
-        public double countSliders;
-        public double countCircles;
+        
+        public int HitCircleCount;
+        public int SpinnerCount;
+        public int CountSliders;
+        public int CountCircles;
     }
 }
