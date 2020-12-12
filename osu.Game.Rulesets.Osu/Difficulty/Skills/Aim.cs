@@ -20,7 +20,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         protected override double SkillMultiplier => 26.25;
         protected override double StrainDecayBase => 0.15;
         public override double strainDecay(double ms) => Math.Pow(StrainDecayBase, ms / 1000);
-        protected override double StarMultiplierPerRepeat => 1.05;
+        protected override double StarMultiplierPerRepeat => 1.075;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {

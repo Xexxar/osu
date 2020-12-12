@@ -85,13 +85,13 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 MissStarRatingExponent = miss_sr_exponent,
 
                 ApproachRate = preempt > 1200 ? (1800 - preempt) / 120 : (1200 - preempt) / 150 + 5,
-                OverallDifficulty = (80 - hitWindowGreat) / 6,
+                OverallDifficulty = overallDifficulty,
                 MaxCombo = maxCombo,
                 CountCircles = circles,
                 CountSliders = sliders,
                 HitCircleCount = hitCirclesCount,
                 SpinnerCount = spinnerCount,
-                
+
                 AimStrain = aimRating,
                 AimComboStarRatings = aimComboSr,
                 AimMissCounts = aimMissCounts,

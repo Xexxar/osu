@@ -26,6 +26,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         private int countMeh;
         private int countMiss;
 
+        private const double combo_weight = 0.5;
+
         public OsuPerformanceCalculator(Ruleset ruleset, DifficultyAttributes attributes, ScoreInfo score)
             : base(ruleset, attributes, score)
         {
@@ -79,82 +81,81 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
         private double computeAimValue()
         {
-            double rawAim = Attributes.AimStrain;
+          double aimComboStarRating = interpComboStarRating(Attributes.AimComboStarRatings, scoreMaxCombo, Attributes.MaxCombo);
+          double aimMissCountStarRating = interpMissCountStarRating(Attributes.AimComboStarRatings.Last(), Attributes.AimMissCounts, countMiss);
+          double rawAim = Math.Pow(aimComboStarRating, combo_weight) * Math.Pow(aimMissCountStarRating, 1 - combo_weight);
 
-            if (mods.Any(m => m is OsuModTouchDevice))
-                rawAim = Math.Pow(rawAim, 0.8);
+          if (mods.Any(m => m is OsuModTouchDevice))
+              rawAim = Math.Pow(rawAim, 0.8);
 
-            double aimValue = Math.Pow(5.0 * Math.Max(1.0, rawAim / 0.0675) - 4.0, 3.0) / 100000.0;
+          double aimValue = Math.Pow(5.0f * Math.Max(1.0f, rawAim / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
 
-            // Longer maps are worth more
-            double lengthBonus = 0.95 + 0.4 * Math.Min(1.0, totalHits / 2000.0) +
-                                 (totalHits > 2000 ? Math.Log10(totalHits / 2000.0) * 0.5 : 0.0);
+          // double lengthBonus = (1 + 0.95 + 0.4 * Math.Min(1.0, totalHits / 2000.0) +
+          //                      (totalHits > 2000 ? Math.Log10(totalHits / 2000.0) * 0.5 : 0.0)) / 2;
+          // aimValue *= lengthBonus;
 
-            aimValue *= lengthBonus;
+          double approachRateFactor = 0.0;
+          if (Attributes.ApproachRate > 10.33)
+              approachRateFactor += 0.2 * (Attributes.ApproachRate - 10.33);
+          else if (Attributes.ApproachRate < 8.0)
+              approachRateFactor += 0.1 * (8.0 - Attributes.ApproachRate);
 
-            // Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
-            if (countMiss > 0)
-                aimValue *= 0.97 * Math.Pow(1 - Math.Pow((double)countMiss / totalHits, 0.775), countMiss);
+          aimValue *= 1.0 + Math.Min(approachRateFactor, approachRateFactor * (totalHits / 1000.0));
 
-            // Combo scaling
-            if (Attributes.MaxCombo > 0)
-                aimValue *= Math.Min(Math.Pow(scoreMaxCombo, 0.8) / Math.Pow(Attributes.MaxCombo, 0.8), 1.0);
+          // We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
+          if (mods.Any(h => h is OsuModHidden))
+              aimValue *= 1.0 + 0.04 * (12.0 - Attributes.ApproachRate);
 
-            double approachRateFactor = 0.0;
-            if (Attributes.ApproachRate > 10.33)
-                approachRateFactor += 0.4 * (Attributes.ApproachRate - 10.33);
-            else if (Attributes.ApproachRate < 8.0)
-                approachRateFactor += 0.1 * (8.0 - Attributes.ApproachRate);
+          if (mods.Any(h => h is OsuModFlashlight))
+          {
+              // Apply object-based bonus for flashlight.
+              aimValue *= 1.0 + 0.35 * Math.Min(1.0, totalHits / 200.0) +
+                          (totalHits > 200
+                              ? 0.3 * Math.Min(1.0, (totalHits - 200) / 300.0) +
+                                (totalHits > 500 ? (totalHits - 500) / 1200.0 : 0.0)
+                              : 0.0);
+          }
 
-            aimValue *= 1.0 + Math.Min(approachRateFactor, approachRateFactor * (totalHits / 1000.0));
+          // Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
+          if (countMiss > 0)
+              aimValue *= 0.97 * Math.Pow(1 - Math.Pow((double)countMiss / totalHits, 0.775), countMiss);
 
-            // We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
-            if (mods.Any(h => h is OsuModHidden))
-                aimValue *= 1.0 + 0.04 * (12.0 - Attributes.ApproachRate);
+          // Scale the aim value with accuracy _slightly_
+          aimValue *= 0.5 + accuracy / 2.0;
+          // It is important to also consider accuracy difficulty when doing that
+          aimValue *= 0.98 + Math.Pow(Attributes.OverallDifficulty, 2) / 2500;
 
-            if (mods.Any(h => h is OsuModFlashlight))
-            {
-                // Apply object-based bonus for flashlight.
-                aimValue *= 1.0 + 0.35 * Math.Min(1.0, totalHits / 200.0) +
-                            (totalHits > 200
-                                ? 0.3 * Math.Min(1.0, (totalHits - 200) / 300.0) +
-                                  (totalHits > 500 ? (totalHits - 500) / 1200.0 : 0.0)
-                                : 0.0);
-            }
-
-            // Scale the aim value with accuracy _slightly_
-            aimValue *= 0.5 + accuracy / 2.0;
-            // It is important to also consider accuracy difficulty when doing that
-            aimValue *= 0.98 + Math.Pow(Attributes.OverallDifficulty, 2) / 2500;
-
-            return aimValue;
+          return aimValue;
         }
 
         private double computeSpeedValue()
         {
-            double speedValue = Math.Pow(5.0 * Math.Max(1.0, Attributes.SpeedStrain / 0.0675) - 4.0, 3.0) / 100000.0;
 
-            // Longer maps are worth more
-            double lengthBonus = 0.95 + 0.4 * Math.Min(1.0, totalHits / 2000.0) +
-                                 (totalHits > 2000 ? Math.Log10(totalHits / 2000.0) * 0.5 : 0.0);
+            double speedComboStarRating = interpComboStarRating(Attributes.SpeedComboStarRatings, scoreMaxCombo, Attributes.MaxCombo);
+            double speedMissCountStarRating = interpMissCountStarRating(Attributes.SpeedComboStarRatings.Last(), Attributes.SpeedMissCounts, countMiss);
+            double rawSpeed = Math.Pow(speedComboStarRating, combo_weight) * Math.Pow(speedMissCountStarRating, 1 - combo_weight);
+
+            if (mods.Any(m => m is OsuModTouchDevice))
+                rawSpeed = Math.Pow(rawSpeed, 1.25f);
+
+            double speedValue = Math.Pow(5.0f * Math.Max(1.0f, rawSpeed / 0.0675f) - 4.0f, 3.0f) / 100000.0f;
+
+            double lengthBonus = (1 + 0.95 + 0.4 * Math.Min(1.0, totalHits / 2000.0) +
+                                 (totalHits > 2000 ? Math.Log10(totalHits / 2000.0) * 0.5 : 0.0)) / 2;
             speedValue *= lengthBonus;
-
-            // Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
-            if (countMiss > 0)
-                speedValue *= 0.97 * Math.Pow(1 - Math.Pow((double)countMiss / totalHits, 0.775), Math.Pow(countMiss, .875));
-
-            // Combo scaling
-            if (Attributes.MaxCombo > 0)
-                speedValue *= Math.Min(Math.Pow(scoreMaxCombo, 0.8) / Math.Pow(Attributes.MaxCombo, 0.8), 1.0);
 
             double approachRateFactor = 0.0;
             if (Attributes.ApproachRate > 10.33)
-                approachRateFactor += 0.4 * (Attributes.ApproachRate - 10.33);
+                approachRateFactor += 0.2 * (Attributes.ApproachRate - 10.33);
 
             speedValue *= 1.0 + Math.Min(approachRateFactor, approachRateFactor * (totalHits / 1000.0));
 
             if (mods.Any(m => m is OsuModHidden))
                 speedValue *= 1.0 + 0.04 * (12.0 - Attributes.ApproachRate);
+
+            // Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
+            if (countMiss > 0)
+                speedValue *= 0.97 * Math.Pow(1 - Math.Pow((double)countMiss / totalHits, 0.775), countMiss);
 
             // Scale the speed value with accuracy and OD
             speedValue *= (.95 + Math.Pow(Attributes.OverallDifficulty, 2) / 750) * Math.Pow(accuracy, (14.5 - Math.Max(Attributes.OverallDifficulty, 8)) / 2);
@@ -192,6 +193,81 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 accuracyValue *= 1.02;
 
             return accuracyValue;
+        }
+
+        private double interpComboStarRating(IList<double> values, double scoreCombo, double mapCombo)
+        {
+            if (mapCombo == 0)
+            {
+                return values.Last();
+            }
+
+            double comboRatio = scoreCombo / mapCombo;
+            double pos = Math.Min(comboRatio * (values.Count), values.Count);
+            int i = (int)pos;
+
+            if (i == values.Count)
+            {
+                return values.Last();
+            }
+
+            if (pos <= 0)
+            {
+                return 0;
+            }
+
+            double ub = values[i];
+            double lb = i == 0 ? 0 : values[i - 1];
+
+            double t = pos - i;
+            double ret = lb * (1 - t) + ub * t;
+
+            return ret;
+        }
+
+        // get star rating corresponding to miss count in miss count list
+        private double missStarRating(double sr, int i) => sr * (1 - Math.Pow((i + 1), Attributes.MissStarRatingExponent) * Attributes.MissStarRatingIncrement);
+
+        private double interpMissCountStarRating(double sr, IList<double> values, int missCount)
+        {
+            double increment = Attributes.MissStarRatingIncrement;
+            double t;
+
+            if (missCount == 0)
+            {
+                // zero misses, return SR
+                return sr;
+            }
+
+            if (missCount < values[0])
+            {
+                t = missCount / values[0];
+                return sr * (1 - t) + missStarRating(sr, 0) * t;
+            }
+
+            for (int i = 0; i < values.Count; ++i)
+            {
+                if (missCount == values[i])
+                {
+                    if (i < values.Count - 1 && missCount == values[i + 1])
+                    {
+                        // if there are duplicates, take the lowest SR that can achieve miss count
+                        continue;
+                    }
+
+                    return missStarRating(sr, i);
+                }
+
+                if (i < values.Count - 1 && missCount < values[i + 1])
+                {
+                    t = (missCount - values[i]) / (values[i + 1] - values[i]);
+                    return missStarRating(sr, i) * (1 - t) + missStarRating(sr, i + 1) * t;
+                }
+            }
+
+            // more misses than max evaluated, interpolate to zero
+            t = (missCount - values.Last()) / (Attributes.MaxCombo - values.Last());
+            return missStarRating(sr, values.Count - 1) * (1 - t);
         }
 
         private int totalHits => countGreat + countOk + countMeh + countMiss;

@@ -23,7 +23,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         protected override double SkillMultiplier => 1400;
         protected override double StrainDecayBase => 0.3;
         public override double strainDecay(double ms) => Math.Pow(StrainDecayBase, ms / 1000);
-        protected override double StarMultiplierPerRepeat => 1.05;
+        protected override double StarMultiplierPerRepeat => 1.025;
 
         private const double min_speed_bonus = 75; // ~200BPM
         private const double max_speed_bonus = 45; // ~330BPM

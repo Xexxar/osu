@@ -12,7 +12,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
 {
     public class OsuDifficultyHitObject : DifficultyHitObject
     {
-        private const double normalized_diameter = 1;
+        private const double normalized_diameter = 104;
 
         public new OsuHitObject BaseObject => (OsuHitObject)base.BaseObject;
 
