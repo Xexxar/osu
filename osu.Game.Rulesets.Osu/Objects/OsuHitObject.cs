@@ -27,6 +27,7 @@ namespace osu.Game.Rulesets.Osu.Objects
 
         public double TimePreempt = 600;
         public double TimeFadeIn = 400;
+        public double GreatHitWindow = 600;
 
         public readonly Bindable<Vector2> PositionBindable = new Bindable<Vector2>();
 
@@ -113,6 +114,7 @@ namespace osu.Game.Rulesets.Osu.Objects
             base.ApplyDefaultsToSelf(controlPointInfo, difficulty);
 
             TimePreempt = (float)BeatmapDifficulty.DifficultyRange(difficulty.ApproachRate, 1800, 1200, 450);
+            GreatHitWindow = (float)BeatmapDifficulty.DifficultyRange(difficulty.OverallDifficulty, 79.5, 49.5, 19.5);
             TimeFadeIn = 400; // as per osu-stable
 
             Scale = (1.0f - 0.7f * (difficulty.CircleSize - 5) / 5) / 2;

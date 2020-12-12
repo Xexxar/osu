@@ -12,9 +12,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
 {
     public class OsuDifficultyHitObject : DifficultyHitObject
     {
-        private const int normalized_radius = 52;
+        private const double normalized_diameter = 1;
 
-        protected new OsuHitObject BaseObject => (OsuHitObject)base.BaseObject;
+        public new OsuHitObject BaseObject => (OsuHitObject)base.BaseObject;
+
+        /// <summary>
+        ///  Distance from the end position of the previous <see cref="OsuDifficultyHitObject"/> to the start position of this <see cref="OsuDifficultyHitObject"/>.
+        /// </summary>
+        public Vector2 DistanceVector { get; private set; }
 
         /// <summary>
         /// Normalized distance from the end position of the previous <see cref="OsuDifficultyHitObject"/> to the start position of this <see cref="OsuDifficultyHitObject"/>.
@@ -27,6 +32,16 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
         public double TravelDistance { get; private set; }
 
         /// <summary>
+        /// The time given to go through the normalized distance between the start and end position of the previous <see cref="OsuDifficultyHitObject"/>.
+        /// </summary>
+        public double TravelTime { get; private set; }
+
+        /// <summary>
+        /// The time given to go between the start and end position of the previous <see cref="OsuDifficultyHitObject"/>.
+        /// </summary>
+        public double TravelDuration { get; private set; }
+
+        /// <summary>
         /// Angle the player has to take to hit this <see cref="OsuDifficultyHitObject"/>.
         /// Calculated as the angle between the circles (current-2, current-1, current).
         /// </summary>
@@ -37,6 +52,16 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
         /// </summary>
         public readonly double StrainTime;
 
+        /// <summary>
+        /// The rhythm required to hit this hit object.
+        /// </summary>
+        public readonly OsuDifficultyHitObjectRhythm Rhythm;
+
+        /// <summary>
+        /// The rhythm required to hit this hit object, using the previous previous sliderend instead of clickable object.
+        /// </summary>
+        public readonly OsuDifficultyHitObjectRhythm SliderRhythm;
+
         private readonly OsuHitObject lastLastObject;
         private readonly OsuHitObject lastObject;
 
@@ -46,34 +71,51 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
             this.lastLastObject = (OsuHitObject)lastLastObject;
             this.lastObject = (OsuHitObject)lastObject;
 
-            setDistances();
+            setDistances(clockRate);
 
             // Every strain interval is hard capped at the equivalent of 375 BPM streaming speed as a safety measure
             StrainTime = Math.Max(50, DeltaTime);
+            TravelTime = Math.Max(50, TravelTime);
+
+            if (lastLastObject != null) {
+                Rhythm = getClosestRhythm(lastObject.StartTime, lastLastObject.StartTime, clockRate);
+                if (lastObject is Slider) {
+                    Slider sliderLastObject = (Slider)lastObject;
+                    SliderRhythm = getClosestRhythm(lastObject.StartTime, sliderLastObject.EndTime, clockRate);
+                }
+                else if (lastLastObject is Slider) {
+                    Slider sliderLastLastObject = (Slider)lastLastObject;
+                    SliderRhythm = getClosestRhythm(lastObject.StartTime, sliderLastLastObject.EndTime, clockRate);
+                }
+            }
         }
 
-        private void setDistances()
+        private void setDistances(double clockRate)
         {
             // We will scale distances by this factor, so we can assume a uniform CircleSize among beatmaps.
-            float scalingFactor = normalized_radius / (float)BaseObject.Radius;
-
-            if (BaseObject.Radius < 30)
-            {
-                float smallCircleBonus = Math.Min(30 - (float)BaseObject.Radius, 5) / 50;
-                scalingFactor *= 1 + smallCircleBonus;
-            }
+            float scalingFactor = (float)normalized_diameter / (2 * (float)BaseObject.Radius);
+            // if (BaseObject.Radius < 30)
+            // {
+            //     float smallCircleBonus = (30 - (float)BaseObject.Radius) / 50;
+            //     scalingFactor *= 1 + smallCircleBonus;
+            // }
 
             if (lastObject is Slider lastSlider)
             {
                 computeSliderCursorPosition(lastSlider);
                 TravelDistance = lastSlider.LazyTravelDistance * scalingFactor;
+                TravelTime = lastSlider.LazyTravelTime / clockRate;
+                TravelDuration = lastSlider.Duration / clockRate;
             }
 
             Vector2 lastCursorPosition = getEndCursorPosition(lastObject);
 
             // Don't need to jump to reach spinners
             if (!(BaseObject is Spinner))
-                JumpDistance = (BaseObject.StackedPosition * scalingFactor - lastCursorPosition * scalingFactor).Length;
+            {
+                DistanceVector = (BaseObject.StackedPosition * scalingFactor - lastCursorPosition * scalingFactor);
+                JumpDistance = DistanceVector.Length;
+            }
 
             if (lastLastObject != null)
             {
@@ -93,7 +135,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
         {
             if (slider.LazyEndPosition != null)
                 return;
-
             slider.LazyEndPosition = slider.StackedPosition;
 
             float approxFollowCircleRadius = (float)(slider.Radius * 3);
@@ -103,7 +144,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
                 if (progress % 2 >= 1)
                     progress = 1 - progress % 1;
                 else
-                    progress %= 1;
+                    progress = progress % 1;
 
                 // ReSharper disable once PossibleInvalidOperationException (bugged in current r# version)
                 var diff = slider.StackedPosition + slider.Path.PositionAt(progress) - slider.LazyEndPosition.Value;
@@ -116,7 +157,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
                     dist -= approxFollowCircleRadius;
                     slider.LazyEndPosition += diff * dist;
                     slider.LazyTravelDistance += dist;
+                    slider.LazyTravelTime = t - slider.StartTime;
                 }
+                if (t != slider.TailCircle.StartTime)
+                    slider.LazyTravelTime = t - slider.StartTime;
             });
 
             // Skip the head circle
@@ -129,13 +173,48 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Preprocessing
         {
             Vector2 pos = hitObject.StackedPosition;
 
-            if (hitObject is Slider slider)
+            var slider = hitObject as Slider;
+            if (slider != null)
             {
                 computeSliderCursorPosition(slider);
                 pos = slider.LazyEndPosition ?? pos;
             }
 
             return pos;
+        }
+
+        /// <summary>
+        /// List of most common rhythm changes
+        /// </summary>
+        private static readonly OsuDifficultyHitObjectRhythm[] common_rhythms =
+        {
+            new OsuDifficultyHitObjectRhythm(1, 1, 0.0),
+            new OsuDifficultyHitObjectRhythm(2, 1, 0.25),
+            new OsuDifficultyHitObjectRhythm(1, 2, 0.35),
+            new OsuDifficultyHitObjectRhythm(3, 1, 0.2),
+            new OsuDifficultyHitObjectRhythm(1, 3, 0.35),
+            new OsuDifficultyHitObjectRhythm(3, 2, 0.6),
+            new OsuDifficultyHitObjectRhythm(2, 3, 0.5),
+            new OsuDifficultyHitObjectRhythm(5, 4, 0.8),
+            new OsuDifficultyHitObjectRhythm(4, 5, 0.7)
+        };
+
+        /// <summary>
+        /// Returns the closest rhythm change from <see cref="common_rhythms"/> required to hit this object.
+        /// </summary>
+        /// <param name="lastObjectTime">The gameplay preceding this one.</param>
+        /// <param name="lastLastObjectTime">The gameplay preceding <paramref name="lastObjectTime"/>.</param>
+        /// <param name="clockRate">The rate of the gameplay clock.</param>
+        private OsuDifficultyHitObjectRhythm getClosestRhythm(double lastObjectTime, double lastLastObjectTime, double clockRate)
+        {
+            double prevLength = (lastObjectTime - lastLastObjectTime) / clockRate;
+            double ratio = DeltaTime / prevLength;
+
+            if ((ratio < 1.0/4.0) || (ratio > 4.0)) {
+                ratio = 1.0;  // Extreme ratio changes are counted as 0 strain.
+            }
+
+            return common_rhythms.OrderBy(x => Math.Abs(x.Ratio - ratio)).First();
         }
     }
 }

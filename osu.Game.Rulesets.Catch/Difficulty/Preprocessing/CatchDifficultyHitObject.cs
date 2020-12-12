@@ -24,7 +24,7 @@ namespace osu.Game.Rulesets.Catch.Difficulty.Preprocessing
         /// </summary>
         public readonly double StrainTime;
 
-        public readonly double ClockRate;
+        public new readonly double ClockRate;
 
         public CatchDifficultyHitObject(HitObject hitObject, HitObject lastObject, double clockRate, float halfCatcherWidth)
             : base(hitObject, lastObject, clockRate)

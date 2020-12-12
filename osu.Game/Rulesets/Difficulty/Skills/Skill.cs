@@ -53,7 +53,7 @@ namespace osu.Game.Rulesets.Difficulty.Skills
         /// <summary>
         /// Process a <see cref="DifficultyHitObject"/> and update current strain values accordingly.
         /// </summary>
-        public void Process(DifficultyHitObject current)
+        public virtual void Process(DifficultyHitObject current)
         {
             CurrentStrain *= strainDecay(current.DeltaTime);
             CurrentStrain += StrainValueOf(current) * SkillMultiplier;
@@ -61,6 +61,10 @@ namespace osu.Game.Rulesets.Difficulty.Skills
             currentSectionPeak = Math.Max(CurrentStrain, currentSectionPeak);
 
             Previous.Push(current);
+        }
+        public virtual void Calculate(int? beatmapid)
+        {
+            SaveCurrentPeak();
         }
 
         /// <summary>
