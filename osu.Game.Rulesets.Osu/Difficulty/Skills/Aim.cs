@@ -3,6 +3,7 @@
 
 using System;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
+using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Osu.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Osu.Objects;
 
@@ -11,11 +12,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// <summary>
     /// Represents the skill required to correctly aim at every object in the map with a uniform CircleSize and normalized distances.
     /// </summary>
-    public class Aim : OsuSkill
+    public class Aim : Skill
     {
         private const double angle_bonus_begin = Math.PI / 3;
         private const double timing_threshold = 107;
-        protected override double MaxStrainTime => 200;
 
         protected override double SkillMultiplier => 26.25;
         protected override double StrainDecayBase => 0.15;

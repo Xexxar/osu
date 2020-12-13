@@ -14,8 +14,10 @@ namespace osu.Game.Rulesets.Catch.Skinning.Legacy
         {
             base.LoadComplete();
 
-            var fruitState = (IHasFruitState)ObjectState;
-            VisualRepresentation.BindTo(fruitState.VisualRepresentation);
+            var fruit = (DrawableFruit)DrawableHitObject;
+
+            if (fruit != null)
+                VisualRepresentation.BindTo(fruit.VisualRepresentation);
 
             VisualRepresentation.BindValueChanged(visual => setTexture(visual.NewValue), true);
         }

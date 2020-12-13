@@ -10,9 +10,9 @@ using osu.Game.Skinning;
 
 namespace osu.Game.Rulesets.Catch.Objects.Drawables
 {
-    public class DrawableFruit : DrawablePalpableCatchHitObject, IHasFruitState
+    public class DrawableFruit : DrawablePalpableCatchHitObject
     {
-        public Bindable<FruitVisualRepresentation> VisualRepresentation { get; } = new Bindable<FruitVisualRepresentation>();
+        public readonly Bindable<FruitVisualRepresentation> VisualRepresentation = new Bindable<FruitVisualRepresentation>();
 
         public DrawableFruit()
             : this(null)
@@ -32,7 +32,7 @@ namespace osu.Game.Rulesets.Catch.Objects.Drawables
                 VisualRepresentation.Value = (FruitVisualRepresentation)(change.NewValue % 4);
             }, true);
 
-            ScalingContainer.Child = new SkinnableDrawable(
+            ScaleContainer.Child = new SkinnableDrawable(
                 new CatchSkinComponent(CatchSkinComponents.Fruit),
                 _ => new FruitPiece());
         }
@@ -41,7 +41,7 @@ namespace osu.Game.Rulesets.Catch.Objects.Drawables
         {
             base.UpdateInitialTransforms();
 
-            ScalingContainer.RotateTo((RandomSingle(1) - 0.5f) * 40);
+            ScaleContainer.RotateTo((RandomSingle(1) - 0.5f) * 40);
         }
     }
 

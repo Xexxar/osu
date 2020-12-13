@@ -7,6 +7,7 @@ using osu.Framework.Allocation;
 using osu.Framework.Bindables;
 using osu.Framework.Graphics.Containers;
 using osu.Game.Rulesets.Catch.Objects.Drawables;
+using osu.Game.Rulesets.Objects.Drawables;
 using osuTK.Graphics;
 
 namespace osu.Game.Rulesets.Catch.Skinning.Default
@@ -16,8 +17,9 @@ namespace osu.Game.Rulesets.Catch.Skinning.Default
         public readonly Bindable<Color4> AccentColour = new Bindable<Color4>();
         public readonly Bindable<bool> HyperDash = new Bindable<bool>();
 
-        [Resolved]
-        protected IHasCatchObjectState ObjectState { get; private set; }
+        [Resolved(canBeNull: true)]
+        [CanBeNull]
+        protected DrawableHitObject DrawableHitObject { get; private set; }
 
         /// <summary>
         /// A part of this piece that will be faded out while falling in the playfield.
@@ -35,8 +37,13 @@ namespace osu.Game.Rulesets.Catch.Skinning.Default
         {
             base.LoadComplete();
 
-            AccentColour.BindTo(ObjectState.AccentColour);
-            HyperDash.BindTo(ObjectState.HyperDash);
+            var hitObject = (DrawablePalpableCatchHitObject)DrawableHitObject;
+
+            if (hitObject != null)
+            {
+                AccentColour.BindTo(hitObject.AccentColour);
+                HyperDash.BindTo(hitObject.HyperDash);
+            }
 
             HyperDash.BindValueChanged(hyper =>
             {
@@ -47,8 +54,8 @@ namespace osu.Game.Rulesets.Catch.Skinning.Default
 
         protected override void Update()
         {
-            if (BorderPiece != null)
-                BorderPiece.Alpha = (float)Math.Clamp((ObjectState.HitObject.StartTime - Time.Current) / 500, 0, 1);
+            if (BorderPiece != null && DrawableHitObject?.HitObject != null)
+                BorderPiece.Alpha = (float)Math.Clamp((DrawableHitObject.HitObject.StartTime - Time.Current) / 500, 0, 1);
         }
     }
 }
