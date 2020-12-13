@@ -27,6 +27,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private const double max_speed_bonus = 45; // ~330BPM
         private const double speed_balancing_factor = 40;
 
+        protected override double DifficultyMultiplierPerRepeat => 1.025;
+
         protected override double StrainValueOf(DifficultyHitObject current)
         {
             if (current.BaseObject is Spinner)

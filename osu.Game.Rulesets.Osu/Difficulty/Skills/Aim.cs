@@ -20,6 +20,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         protected override double SkillMultiplier => 26.25;
         protected override double StrainDecayBase => 0.15;
 
+        protected override double DifficultyMultiplierPerRepeat => 1.075;
+
         protected override double StrainValueOf(DifficultyHitObject current)
         {
             if (current.BaseObject is Spinner)
