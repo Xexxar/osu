@@ -19,7 +19,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private const double pi_over_4 = Math.PI / 4;
         private const double pi_over_2 = Math.PI / 2;
 
-        protected override double SkillMultiplier => 1400;
+        protected override double SkillMultiplier => 1500;
         protected override double StrainDecayBase => 0.3;
         protected override double MaxStrainTime => 200;
 
@@ -27,7 +27,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private const double max_speed_bonus = 45; // ~330BPM
         private const double speed_balancing_factor = 40;
 
-        protected override double DifficultyMultiplierPerRepeat => 1.025;
+        protected override double DifficultyMultiplierPerRepeat => 1.0425;
 
         protected override double StrainValueOf(DifficultyHitObject current)
         {
@@ -41,7 +41,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             double speedBonus = 1.0;
             if (deltaTime < min_speed_bonus)
-                speedBonus = 1 + Math.Pow((min_speed_bonus - deltaTime) / speed_balancing_factor, 2);
+                speedBonus = 1 + Math.Pow((min_speed_bonus - deltaTime) / speed_balancing_factor, 2) * 0.75;
 
             double angleBonus = 1.0;
 
@@ -59,7 +59,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 }
             }
 
-            return (1 + (speedBonus - 1) * 0.75) * angleBonus * (0.95 + speedBonus * Math.Pow(distance / single_spacing_threshold, 3.5)) / osuCurrent.StrainTime;
+            return speedBonus * angleBonus * (0.95 + speedBonus * Math.Pow(distance / single_spacing_threshold, 3.5)) / osuCurrent.StrainTime;
         }
     }
 }

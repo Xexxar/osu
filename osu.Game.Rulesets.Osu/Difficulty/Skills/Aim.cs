@@ -17,7 +17,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private const double timing_threshold = 107;
         protected override double MaxStrainTime => 200;
 
-        protected override double SkillMultiplier => 26.25;
+        protected override double SkillMultiplier => 25;
         protected override double StrainDecayBase => 0.15;
 
         protected override double DifficultyMultiplierPerRepeat => 1.075;

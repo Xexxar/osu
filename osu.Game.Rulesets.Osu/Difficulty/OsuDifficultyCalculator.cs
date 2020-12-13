@@ -50,8 +50,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             // Add the ticks + tail of the slider. 1 is subtracted because the head circle would be counted twice (once for the slider itself in the line above)
             maxCombo += beatmap.HitObjects.OfType<Slider>().Sum(s => s.NestedHitObjects.Count - 1);
 
-            int hitCirclesCount = beatmap.HitObjects.Count(h => h is HitCircle);
             int spinnerCount = beatmap.HitObjects.Count(h => h is Spinner);
+            int circleCount = beatmap.HitObjects.Count(h => h is HitCircle);
+            int sliderCount = beatmap.HitObjects.Count(h => h is Slider);
 
             return new OsuDifficultyAttributes
             {
@@ -66,8 +67,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 ApproachRate = preempt > 1200 ? (1800 - preempt) / 120 : (1200 - preempt) / 150 + 5,
                 OverallDifficulty = (80 - hitWindowGreat) / 6,
                 MaxCombo = maxCombo,
-                HitCircleCount = hitCirclesCount,
                 SpinnerCount = spinnerCount,
+                CircleCount = circleCount,
+                SliderCount = sliderCount,
                 Skills = skills
             };
         }
