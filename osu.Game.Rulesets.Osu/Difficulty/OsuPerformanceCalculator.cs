@@ -113,7 +113,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             else if (Attributes.ApproachRate < 8.0)
                 approachRateFactor += 0.1 * (8.0 - Attributes.ApproachRate);
 
-            //aimValue *= 1.0 + Math.Min(approachRateFactor, approachRateFactor * (totalHits / 1000.0));
+            aimValue *= 1.0 + Math.Min(approachRateFactor, approachRateFactor * (totalHits / 1000.0));
 
             // We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
             if (mods.Any(h => h is OsuModHidden))
@@ -161,7 +161,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             if (Attributes.ApproachRate > 10.33)
                 approachRateFactor += 0.3 * (Attributes.ApproachRate - 10.33);
 
-            //speedValue *= 1.0 + Math.Min(approachRateFactor, approachRateFactor * (totalHits / 1000.0));
+            speedValue *= 1.0 + Math.Min(approachRateFactor, approachRateFactor * (totalHits / 1000.0));
 
             if (mods.Any(m => m is OsuModHidden))
                 speedValue *= 1.0 + 0.04 * (12.0 - Attributes.ApproachRate);
@@ -183,45 +183,71 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
         private double computeAccuracyValue(Dictionary<string, double> categoryRatings = null)
         {
-            double sigmaCircle = 0;
-            double sigmaSlider = 0;
-            double sigmaTotal = 0;
+            // This percentage only considers HitCircles of any value - in this part of the calculation we focus on hitting the timing hit window
+            double betterAccuracyPercentage;
+            int amountHitObjectsWithAccuracy = Attributes.CircleCount;
 
-            double zScore = 2.58f;
-            double sqrt2 = Math.Sqrt(2.0f);
-            double accMultiplier = 1150.0f;
-            double accScale = 1.3f;
+            if (amountHitObjectsWithAccuracy > 0)
+                betterAccuracyPercentage = ((countGreat - (totalHits - amountHitObjectsWithAccuracy)) * 6 + countOk * 2 + countMeh) / (double)(amountHitObjectsWithAccuracy * 6);
+            else
+                betterAccuracyPercentage = 0;
 
-            // Slider sigma calculations
-            if (Attributes.SliderCount > 0)
-            {
-                double sliderConst = Math.Sqrt(2.0f / Attributes.SliderCount) * zScore;
-                double sliderProbability = (2.0f * accuracy + Math.Pow(sliderConst, 2.0f) - sliderConst * Math.Sqrt(4.0f * accuracy + Math.Pow(sliderConst, 2.0f) - 4.0f * Math.Pow(accuracy, 2.0f))) / (2.0f + 2.0f * Math.Pow(sliderConst, 2.0f));
-                sigmaSlider = (199.5f - 10.0f * Attributes.OverallDifficulty) / (sqrt2 * SpecialFunctions.ErfInv(sliderProbability));
-            }
+            // It is possible to reach a negative accuracy with this formula. Cap it at zero - zero points
+            if (betterAccuracyPercentage < 0)
+                betterAccuracyPercentage = 0;
 
-            // Circle sigma calculations
-            if (Attributes.CircleCount > 0)
-            {
-                double circleConst = Math.Sqrt(2.0f / Attributes.CircleCount) * zScore;
-                double circleProbability = (2.0f * accuracy + Math.Pow(circleConst, 2.0f) - circleConst * Math.Sqrt(4.0f * accuracy + Math.Pow(circleConst, 2.0f) - 4.0f * Math.Pow(accuracy, 2.0f))) / (2.0f + 2.0f * Math.Pow(circleConst, 2.0f));
-                sigmaCircle = (79.5f - 6.0f * Attributes.OverallDifficulty) / (sqrt2 * SpecialFunctions.ErfInv(circleProbability));
-            }
+            // Lots of arbitrary values from testing.
+            // Considering to use derivation from perfect accuracy in a probabilistic manner - assume normal distribution
+            double accuracyValue = Math.Pow(1.52163, Attributes.OverallDifficulty) * Math.Pow(betterAccuracyPercentage, 24) * 2.83;
 
-            if (sigmaSlider == 0) return accMultiplier * Math.Pow(accScale, -sigmaCircle);
-            if (sigmaCircle == 0) return accMultiplier * Math.Pow(accScale, -sigmaSlider);
-
-            sigmaTotal = 1.0f / (1.0f / sigmaCircle + 1.0f / sigmaSlider);
-
-            double accuracyValue = accMultiplier * Math.Pow(accScale, -sigmaTotal);
-
-            double acc2ndScale = 0.5f + Math.Pow(Math.Sin(Math.Max(0.0f, Math.PI * (accuracy - 0.75f))), 2.0f);
-            accuracyValue *= acc2ndScale;
+            // Bonus for many hitcircles - it's harder to keep good accuracy up for longer
+            accuracyValue *= Math.Min(1.15, Math.Pow(amountHitObjectsWithAccuracy / 1000.0, 0.3));
 
             if (mods.Any(m => m is OsuModHidden))
-                accuracyValue *= 1.1f;
+                accuracyValue *= 1.08;
+            if (mods.Any(m => m is OsuModFlashlight))
+                accuracyValue *= 1.02;
 
             return accuracyValue;
+            // double sigmaCircle = 0;
+            // double sigmaSlider = 0;
+            // double sigmaTotal = 0;
+            //
+            // double zScore = 2.58f;
+            // double sqrt2 = Math.Sqrt(2.0f);
+            // double accMultiplier = 1150.0f;
+            // double accScale = 1.3f;
+            //
+            // // Slider sigma calculations
+            // if (Attributes.SliderCount > 0)
+            // {
+            //     double sliderConst = Math.Sqrt(2.0f / Attributes.SliderCount) * zScore;
+            //     double sliderProbability = (2.0f * accuracy + Math.Pow(sliderConst, 2.0f) - sliderConst * Math.Sqrt(4.0f * accuracy + Math.Pow(sliderConst, 2.0f) - 4.0f * Math.Pow(accuracy, 2.0f))) / (2.0f + 2.0f * Math.Pow(sliderConst, 2.0f));
+            //     sigmaSlider = (199.5f - 10.0f * Attributes.OverallDifficulty) / (sqrt2 * SpecialFunctions.ErfInv(sliderProbability));
+            // }
+            //
+            // // Circle sigma calculations
+            // if (Attributes.CircleCount > 0)
+            // {
+            //     double circleConst = Math.Sqrt(2.0f / Attributes.CircleCount) * zScore;
+            //     double circleProbability = (2.0f * accuracy + Math.Pow(circleConst, 2.0f) - circleConst * Math.Sqrt(4.0f * accuracy + Math.Pow(circleConst, 2.0f) - 4.0f * Math.Pow(accuracy, 2.0f))) / (2.0f + 2.0f * Math.Pow(circleConst, 2.0f));
+            //     sigmaCircle = (79.5f - 6.0f * Attributes.OverallDifficulty) / (sqrt2 * SpecialFunctions.ErfInv(circleProbability));
+            // }
+            //
+            // if (sigmaSlider == 0) return accMultiplier * Math.Pow(accScale, -sigmaCircle);
+            // if (sigmaCircle == 0) return accMultiplier * Math.Pow(accScale, -sigmaSlider);
+            //
+            // sigmaTotal = 1.0f / (1.0f / sigmaCircle + 1.0f / sigmaSlider);
+            //
+            // double accuracyValue = accMultiplier * Math.Pow(accScale, -sigmaTotal);
+            //
+            // double acc2ndScale = 0.5f + Math.Pow(Math.Sin(Math.Max(0.0f, Math.PI * (accuracy - 0.75f))), 2.0f);
+            // accuracyValue *= acc2ndScale;
+            //
+            // if (mods.Any(m => m is OsuModHidden))
+            //     accuracyValue *= 1.1f;
+            //
+            // return accuracyValue;
         }
 
         private int totalHits => countGreat + countOk + countMeh + countMiss;
