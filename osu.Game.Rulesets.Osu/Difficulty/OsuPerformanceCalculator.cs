@@ -200,7 +200,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             speedValue *= Math.Pow(0.98, countMeh < totalHits / 500.0 ? 0.5 * countMeh : countMeh - totalHits / 500.0 * 0.5);
 
             // Scale by % FC'd to encourage FC.
-            speedValue *= 0.8 + 0.2 * ((double)Score.MaxCombo / (double)Attributes.MaxCombo);
+            speedValue *= 0.9 + 0.1 * ((double)Score.MaxCombo / (double)Attributes.MaxCombo);
 
             if (categoryRatings != null)
             {
