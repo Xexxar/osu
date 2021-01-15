@@ -41,7 +41,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             double speedBonus = 1.0;
             if (deltaTime < min_speed_bonus)
-                speedBonus = 1 + Math.Pow((min_speed_bonus - deltaTime) / speed_balancing_factor, 2) * 0.75;
+                speedBonus = 1 + Math.Pow((min_speed_bonus - deltaTime) / speed_balancing_factor, 2) * 0.625;
 
             double angleBonus = 1.0;
 
