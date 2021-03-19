@@ -32,8 +32,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             if (beatmap.HitObjects.Count == 0)
                 return new OsuDifficultyAttributes { Mods = mods, Skills = skills };
 
+            var aimSkill = (Aim)skills[0];
+            var speedSkill = (Speed)skills[1];
+
             double aimRating = Math.Sqrt(skills[0].DifficultyValue()) * difficulty_multiplier;
-            double speedRating = Math.Sqrt(skills[1].DifficultyValue()) * difficulty_multiplier;
+            double speedRating = Math.Sqrt(speedSkill.calculateRealSR(skills[1].StrainPeaks));
+            // double speedRating = speedSkill.calculateRealSR(skills[1].StrainPeaks);
+//Math.Sqrt(speedSkill.calculateRealSR(skills[1].StrainPeaks)) * difficulty_multiplier;
+            // double speedRating = Math.Sqrt(skills[1].DifficultyValue()) * difficulty_multiplier;
             double starRating = aimRating + speedRating + Math.Abs(aimRating - speedRating) / 2;
 
             HitWindows hitWindows = new OsuHitWindows();

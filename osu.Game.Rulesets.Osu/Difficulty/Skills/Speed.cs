@@ -2,6 +2,7 @@
 // See the LICENCE file in the repository root for full licence text.
 
 using System;
+using System.Collections.Generic;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Difficulty.Skills;
 using osu.Game.Rulesets.Mods;
@@ -21,16 +22,35 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         private const double pi_over_4 = Math.PI / 4;
         private const double pi_over_2 = Math.PI / 2;
 
-        protected override double SkillMultiplier => 1400;
+        protected override double SkillMultiplier => 42.5;
         protected override double StrainDecayBase => 0.3;
 
         private const double min_speed_bonus = 75; // ~200BPM
         private const double max_speed_bonus = 45; // ~330BPM
         private const double speed_balancing_factor = 40;
 
+        private const double stars_per_double = 1.1;
+        private const double difficulty_multiplier = 1;//0.0675;
+
         public Speed(Mod[] mods)
             : base(mods)
         {
+        }
+
+        public double calculateRealSR(IEnumerable<double> strains) //Scuffed way to override process until more time can be spent working on that.
+        {
+            double k = Math.Log(2) / (Math.Log(stars_per_double));
+            double oneOverk = 1 / k;
+            double SR = 0;
+            int time = 0;
+
+            foreach (double strain in strains)
+            {
+                SR = Math.Pow(Math.Pow(SR, k) + Math.Pow(strain, k), oneOverk);
+                time++;
+            }
+
+            return difficulty_multiplier * SR;
         }
 
         protected override double StrainValueOf(DifficultyHitObject current)
@@ -40,30 +60,13 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             var osuCurrent = (OsuDifficultyHitObject)current;
 
-            double distance = Math.Min(single_spacing_threshold, osuCurrent.TravelDistance + osuCurrent.JumpDistance);
             double deltaTime = Math.Max(max_speed_bonus, current.DeltaTime);
 
-            double speedBonus = 1.0;
+            double speedBonus = 0.0;
             if (deltaTime < min_speed_bonus)
-                speedBonus = 1 + Math.Pow((min_speed_bonus - deltaTime) / speed_balancing_factor, 2);
+                speedBonus = Math.Pow((min_speed_bonus - deltaTime) / speed_balancing_factor, 2) * 0.75;
 
-            double angleBonus = 1.0;
-
-            if (osuCurrent.Angle != null && osuCurrent.Angle.Value < angle_bonus_begin)
-            {
-                angleBonus = 1 + Math.Pow(Math.Sin(1.5 * (angle_bonus_begin - osuCurrent.Angle.Value)), 2) / 3.57;
-
-                if (osuCurrent.Angle.Value < pi_over_2)
-                {
-                    angleBonus = 1.28;
-                    if (distance < 90 && osuCurrent.Angle.Value < pi_over_4)
-                        angleBonus += (1 - angleBonus) * Math.Min((90 - distance) / 10, 1);
-                    else if (distance < 90)
-                        angleBonus += (1 - angleBonus) * Math.Min((90 - distance) / 10, 1) * Math.Sin((pi_over_2 - osuCurrent.Angle.Value) / pi_over_4);
-                }
-            }
-
-            return (1 + (speedBonus - 1) * 0.75) * angleBonus * (0.95 + speedBonus * Math.Pow(distance / single_spacing_threshold, 3.5)) / osuCurrent.StrainTime;
+            return (1 + speedBonus) / osuCurrent.StrainTime;
         }
     }
 }
