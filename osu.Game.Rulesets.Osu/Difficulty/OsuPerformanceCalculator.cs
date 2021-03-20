@@ -86,10 +86,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             double aimValue = Math.Pow(5.0 * Math.Max(1.0, rawAim / 0.0675) - 4.0, 3.0) / 100000.0;
 
-            // Longer maps are worth more
-            double lengthBonus = 0.95 + 0.4 * Math.Min(1.0, totalHits / 2000.0) +
-                                 (totalHits > 2000 ? Math.Log10(totalHits / 2000.0) * 0.5 : 0.0);
-            aimValue *= lengthBonus;
+            // // Longer maps are worth more
+            // double lengthBonus = 0.95 + 0.4 * Math.Min(1.0, totalHits / 2000.0) +
+            //                      (totalHits > 2000 ? Math.Log10(totalHits / 2000.0) * 0.5 : 0.0);
+            // aimValue *= lengthBonus;
 
             // Penalize misses by assessing # of misses relative to the total # of objects. Default a 3% reduction for any # of misses.
             if (countMiss > 0)
@@ -109,7 +109,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             // We want to give more reward for lower AR when it comes to aim and HD. This nerfs high AR and buffs lower AR.
             if (mods.Any(h => h is OsuModHidden))
-                aimValue *= 1.0 + 0.04 * (12.0 - Attributes.ApproachRate);
+                aimValue *= 1.0 + 0.06 * (12.0 - Attributes.ApproachRate);
 
             if (mods.Any(h => h is OsuModFlashlight))
             {
@@ -152,8 +152,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             speedValue *= 1.0 + Math.Min(approachRateFactor, approachRateFactor * (totalHits / 1000.0));
 
-            if (mods.Any(m => m is OsuModHidden))
-                speedValue *= 1.0 + 0.04 * (12.0 - Attributes.ApproachRate);
+            // if (mods.Any(m => m is OsuModHidden))
+            //     speedValue *= 1.0 + 0.04 * (12.0 - Attributes.ApproachRate);
 
             // Scale the speed value with accuracy and OD
             speedValue *= (0.95 + Math.Pow(Attributes.OverallDifficulty, 2) / 750) * Math.Pow(accuracy, (14.5 - Math.Max(Attributes.OverallDifficulty, 8)) / 2);

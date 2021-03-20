@@ -89,8 +89,7 @@ namespace osu.Game.Rulesets.Difficulty
                     currentSectionEnd += sectionLength;
                 }
 
-                foreach (Skill s in skills)
-                    s.Process(h);
+                ProcessSkills(skills, h);
             }
 
             // The peak strain will not be saved for the last section in the above loop
@@ -98,6 +97,12 @@ namespace osu.Game.Rulesets.Difficulty
                 s.SaveCurrentPeak();
 
             return CreateDifficultyAttributes(beatmap, mods, skills, clockRate);
+        }
+
+        protected virtual void ProcessSkills(Skill[] skills, DifficultyHitObject h)
+        {
+            foreach (Skill s in skills)
+                s.Process(h);
         }
 
         /// <summary>

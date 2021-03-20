@@ -27,6 +27,15 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         {
         }
 
+        protected override void ProcessSkills(Skill[] skills, DifficultyHitObject h)
+        {
+            var aimSkill = (Aim)skills[0];
+
+            skills[1].Process(h);
+            aimSkill.ProcessAim(h, skills[1].CurrentStrain);
+            // skills[0].Process(h);
+        }
+
         protected override DifficultyAttributes CreateDifficultyAttributes(IBeatmap beatmap, Mod[] mods, Skill[] skills, double clockRate)
         {
             if (beatmap.HitObjects.Count == 0)
@@ -35,7 +44,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             var aimSkill = (Aim)skills[0];
             var speedSkill = (Speed)skills[1];
 
-            double aimRating = Math.Sqrt(skills[0].DifficultyValue()) * difficulty_multiplier;
+            double aimRating = Math.Pow(aimSkill.DifficultyRating, 0.65);
+            // double aimRating = Math.Sqrt(aimSkill.calculateRealSR(skills[0].StrainPeaks));
             double speedRating = Math.Sqrt(speedSkill.calculateRealSR(skills[1].StrainPeaks));
             // double speedRating = speedSkill.calculateRealSR(skills[1].StrainPeaks);
 //Math.Sqrt(speedSkill.calculateRealSR(skills[1].StrainPeaks)) * difficulty_multiplier;

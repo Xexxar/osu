@@ -16,21 +16,14 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// </summary>
     public class Speed : Skill
     {
-        private const double single_spacing_threshold = 125;
-
-        private const double angle_bonus_begin = 5 * Math.PI / 6;
-        private const double pi_over_4 = Math.PI / 4;
-        private const double pi_over_2 = Math.PI / 2;
-
-        protected override double SkillMultiplier => 42.5;
+        protected override double SkillMultiplier => 37.5;
         protected override double StrainDecayBase => 0.3;
 
         private const double min_speed_bonus = 75; // ~200BPM
         private const double max_speed_bonus = 45; // ~330BPM
         private const double speed_balancing_factor = 40;
 
-        private const double stars_per_double = 1.1;
-        private const double difficulty_multiplier = 1;//0.0675;
+        private const double stars_per_double = 1.10;
 
         public Speed(Mod[] mods)
             : base(mods)
@@ -42,15 +35,13 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             double k = Math.Log(2) / (Math.Log(stars_per_double));
             double oneOverk = 1 / k;
             double SR = 0;
-            int time = 0;
 
             foreach (double strain in strains)
             {
                 SR = Math.Pow(Math.Pow(SR, k) + Math.Pow(strain, k), oneOverk);
-                time++;
             }
 
-            return difficulty_multiplier * SR;
+            return SR;
         }
 
         protected override double StrainValueOf(DifficultyHitObject current)
@@ -64,7 +55,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             double speedBonus = 0.0;
             if (deltaTime < min_speed_bonus)
-                speedBonus = Math.Pow((min_speed_bonus - deltaTime) / speed_balancing_factor, 2) * 0.75;
+                speedBonus = Math.Pow((min_speed_bonus - deltaTime) / speed_balancing_factor, 2) * 0.5;
 
             return (1 + speedBonus) / osuCurrent.StrainTime;
         }
