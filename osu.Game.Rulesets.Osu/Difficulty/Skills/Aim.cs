@@ -21,18 +21,19 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         {
         }
 
-        protected override double SkillMultiplier => 70;
+        protected override double SkillMultiplier => 12.5;
         protected override double StrainDecayBase => 0.0;
 
         public double DifficultyRating { get; private set; }
-        private const double stars_per_double = 1.15;
+        private const double stars_per_double = 1.125;
         private double AimCurrentStrain = 1.0;
 
         private double strainDecay(double ms) => Math.Pow(Math.Pow(.85, 1000 / Math.Min(ms, 300)), ms / 1000);//Math.Pow(.525, ms / 1000);
-        private double prevStrain;
 
 
-        protected override double StrainValueOf(DifficultyHitObject current)
+        protected override double StrainValueOf(DifficultyHitObject current) => StrainValueOf(current, 0);
+
+        private double StrainValueOf(DifficultyHitObject current, double speedTapBonus)
         {
             if (current.BaseObject is Spinner)
                 return 0;
@@ -63,11 +64,11 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
                 if (osuPrevObj.BaseObject is Slider osuSlider)
                     sliderVelocity = (Math.Max(osuSlider.LazyTravelDistance, 1) / 50) / (50 + osuSlider.LazyTravelTime);
 
-                double realVelocity = (osuCurrObj.StrainTime / (osuCurrObj.StrainTime)) * currVector.Length +
-                                      0.5 * ((osuCurrObj.StrainTime + osuPrevObj.StrainTime) / (osuCurrObj.StrainTime + osuPrevObj.StrainTime)) * diffPrevVector.Length;
+                double realVelocity = currVector.Length + speedTapBonus *
+                                        ((osuCurrObj.StrainTime + osuPrevObj.StrainTime) / (osuCurrObj.StrainTime + osuPrevObj.StrainTime) * diffPrevVector.Length
+                                          + diffVelocityBonus) / 2;
 
-                strain = (prevStrain + realVelocity + Math.Sqrt(sliderVelocity * realVelocity) + sliderVelocity) / 2;
-                prevStrain = strain;
+                strain = realVelocity + Math.Sqrt(sliderVelocity * realVelocity) + sliderVelocity;
             }
 
             return strain;
@@ -75,11 +76,11 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
         public void ProcessAim(DifficultyHitObject current, double currSpeedStrain)
         {
-            double speedTapBonus = 1 + currSpeedStrain / 8;
+            double speedTapBonus = Math.Sqrt(1 + currSpeedStrain / 1.5);
             // Console.WriteLine(speedTapBonus);
 
-
-            AimCurrentStrain = StrainValueOf(current) * SkillMultiplier * speedTapBonus;
+            AimCurrentStrain *= strainDecay(current.DeltaTime);
+            AimCurrentStrain += StrainValueOf(current, speedTapBonus) * SkillMultiplier;
 
             Previous.Push(current);
 

@@ -45,7 +45,7 @@ namespace osu.Game.Rulesets.Difficulty.Skills
         /// <summary>
         /// The current strain level.
         /// </summary>
-        public double CurrentStrain { get; private set; } = 1;
+        public double CurrentStrain { get; protected set; } = 1;
 
         /// <summary>
         /// Mods for use in skill calculations.

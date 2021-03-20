@@ -46,11 +46,17 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             double aimRating = Math.Pow(aimSkill.DifficultyRating, 0.65);
             // double aimRating = Math.Sqrt(aimSkill.calculateRealSR(skills[0].StrainPeaks));
-            double speedRating = Math.Sqrt(speedSkill.calculateRealSR(skills[1].StrainPeaks));
+            double speedRating = Math.Pow(speedSkill.calculateRealSR(skills[1].StrainPeaks), 0.65);;
             // double speedRating = speedSkill.calculateRealSR(skills[1].StrainPeaks);
 //Math.Sqrt(speedSkill.calculateRealSR(skills[1].StrainPeaks)) * difficulty_multiplier;
             // double speedRating = Math.Sqrt(skills[1].DifficultyValue()) * difficulty_multiplier;
             double starRating = aimRating + speedRating + Math.Abs(aimRating - speedRating) / 2;
+
+            Console.WriteLine(beatmap.Metadata);
+            Console.WriteLine("Aim: " + aimRating);
+            Console.WriteLine("Speed: " + speedRating);
+            Console.WriteLine("SR: " + starRating);
+            Console.WriteLine("--------------------------------------------------------------------");
 
             HitWindows hitWindows = new OsuHitWindows();
             hitWindows.SetDifficulty(beatmap.BeatmapInfo.BaseDifficulty.OverallDifficulty);

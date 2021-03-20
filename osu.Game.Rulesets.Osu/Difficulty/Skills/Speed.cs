@@ -16,12 +16,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// </summary>
     public class Speed : Skill
     {
-        protected override double SkillMultiplier => 37.5;
+        protected override double SkillMultiplier => 16;
         protected override double StrainDecayBase => 0.3;
-
-        private const double min_speed_bonus = 75; // ~200BPM
-        private const double max_speed_bonus = 45; // ~330BPM
-        private const double speed_balancing_factor = 40;
 
         private const double stars_per_double = 1.10;
 
@@ -49,15 +45,27 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             if (current.BaseObject is Spinner)
                 return 0;
 
-            var osuCurrent = (OsuDifficultyHitObject)current;
+            double strain = 0;
 
-            double deltaTime = Math.Max(max_speed_bonus, current.DeltaTime);
+            if (Previous.Count > 1)
+            {
+                // though we are on current, we want to use current as reference for previous,
+                // this is kind of retarded, but real devs can make this less retarded probably
+                // for what its worth, difficulty calculation is a function of Previous[0]
+                var osuPrevObj = (OsuDifficultyHitObject)Previous[1];
+                var osuCurrObj = (OsuDifficultyHitObject)Previous[0];
+                var osuNextObj = (OsuDifficultyHitObject)current;
 
-            double speedBonus = 0.0;
-            if (deltaTime < min_speed_bonus)
-                speedBonus = Math.Pow((min_speed_bonus - deltaTime) / speed_balancing_factor, 2) * 0.5;
+                double ms = (osuPrevObj.StrainTime + osuCurrObj.StrainTime) / 2;
 
-            return (1 + speedBonus) / osuCurrent.StrainTime;
+
+                // if (ms < 75)
+                //     strain = Math.Pow(1 / (ms - 20), 1);
+                // else
+                    strain = 1 / (ms - 20);
+            }
+
+            return strain;
         }
     }
 }

@@ -148,9 +148,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             double approachRateFactor = 0.0;
             if (Attributes.ApproachRate > 10.33)
-                approachRateFactor += 0.4 * (Attributes.ApproachRate - 10.33);
+                approachRateFactor += 0.3 * (Attributes.ApproachRate - 10.33);
 
-            speedValue *= 1.0 + Math.Min(approachRateFactor, approachRateFactor * (totalHits / 1000.0));
+            speedValue *= 1.0 + approachRateFactor;
 
             // if (mods.Any(m => m is OsuModHidden))
             //     speedValue *= 1.0 + 0.04 * (12.0 - Attributes.ApproachRate);
