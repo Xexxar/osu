@@ -30,10 +30,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         protected override void ProcessSkills(Skill[] skills, DifficultyHitObject h)
         {
             var aimSkill = (Aim)skills[0];
+            var speedSkill = (Speed)skills[1];
 
-            skills[1].Process(h);
+            speedSkill.ProcessSpeed(h);
             aimSkill.ProcessAim(h, skills[1].CurrentStrain);
-            // skills[0].Process(h);
         }
 
         protected override DifficultyAttributes CreateDifficultyAttributes(IBeatmap beatmap, Mod[] mods, Skill[] skills, double clockRate)
@@ -46,17 +46,17 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
             double aimRating = Math.Pow(aimSkill.DifficultyRating, 0.65);
             // double aimRating = Math.Sqrt(aimSkill.calculateRealSR(skills[0].StrainPeaks));
-            double speedRating = Math.Pow(speedSkill.calculateRealSR(skills[1].StrainPeaks), 0.65);;
+            double speedRating = Math.Pow(speedSkill.DifficultyRating, 0.65);;
             // double speedRating = speedSkill.calculateRealSR(skills[1].StrainPeaks);
 //Math.Sqrt(speedSkill.calculateRealSR(skills[1].StrainPeaks)) * difficulty_multiplier;
             // double speedRating = Math.Sqrt(skills[1].DifficultyValue()) * difficulty_multiplier;
             double starRating = aimRating + speedRating + Math.Abs(aimRating - speedRating) / 2;
 
-            Console.WriteLine(beatmap.Metadata);
-            Console.WriteLine("Aim: " + aimRating);
-            Console.WriteLine("Speed: " + speedRating);
-            Console.WriteLine("SR: " + starRating);
-            Console.WriteLine("--------------------------------------------------------------------");
+            // Console.WriteLine(beatmap.Metadata);
+            // Console.WriteLine("Aim: " + aimRating);
+            // Console.WriteLine("Speed: " + speedRating);
+            // Console.WriteLine("SR: " + starRating);
+            // Console.WriteLine("--------------------------------------------------------------------");
 
             HitWindows hitWindows = new OsuHitWindows();
             hitWindows.SetDifficulty(beatmap.BeatmapInfo.BaseDifficulty.OverallDifficulty);

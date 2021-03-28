@@ -16,28 +16,24 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// </summary>
     public class Speed : Skill
     {
-        protected override double SkillMultiplier => 16;
-        protected override double StrainDecayBase => 0.3;
+        protected override double SkillMultiplier => 1.6;
+        protected override double StrainDecayBase => 0;
 
-        private const double stars_per_double = 1.10;
+        private double speedSkillMultiplier => 16;
+        private double speedStrainDecayBase => .875;
+        private double speedCurrentStrain = 1.0;
+
+        private double staminaSkillMultiplier => 1;
+        private double staminaStrainDecayBase => .975;
+        private double staminaCurrentStrain = 1.0;
+
+        public double DifficultyRating { get; private set; }
+
+        private const double stars_per_double = 1.05;
 
         public Speed(Mod[] mods)
             : base(mods)
         {
-        }
-
-        public double calculateRealSR(IEnumerable<double> strains) //Scuffed way to override process until more time can be spent working on that.
-        {
-            double k = Math.Log(2) / (Math.Log(stars_per_double));
-            double oneOverk = 1 / k;
-            double SR = 0;
-
-            foreach (double strain in strains)
-            {
-                SR = Math.Pow(Math.Pow(SR, k) + Math.Pow(strain, k), oneOverk);
-            }
-
-            return SR;
         }
 
         protected override double StrainValueOf(DifficultyHitObject current)
@@ -66,6 +62,27 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             }
 
             return strain;
+        }
+
+        public void ProcessSpeed(DifficultyHitObject current)
+        {
+            speedCurrentStrain *= Math.Pow(Math.Pow(speedStrainDecayBase, 1000 / Math.Min(300, current.DeltaTime)), current.DeltaTime / 1000);
+            speedCurrentStrain += StrainValueOf(current) * speedSkillMultiplier;
+
+            staminaCurrentStrain *= Math.Pow(Math.Pow(staminaStrainDecayBase, 1000 / Math.Min(300, current.DeltaTime)), current.DeltaTime / 1000);
+            staminaCurrentStrain += StrainValueOf(current) * staminaSkillMultiplier;
+
+            Previous.Push(current);
+
+            double k = Math.Log(2) / Math.Log(stars_per_double);
+
+            double strain = SkillMultiplier * (speedCurrentStrain + staminaCurrentStrain);
+            CurrentStrain = strain;
+
+            // Console.WriteLine("Speed: " + speedCurrentStrain);
+            // Console.WriteLine("stamina: " + staminaCurrentStrain);
+
+            DifficultyRating = Math.Pow(Math.Pow(DifficultyRating, k) + Math.Pow(strain, k), 1 / k);
         }
     }
 }
