@@ -23,7 +23,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         {
         }
 
-        protected override double SkillMultiplier => 26.25;
+        protected override double SkillMultiplier => 2600.25;
         protected override double StrainDecayBase => 0.15;
 
         protected override double StrainValueOf(DifficultyHitObject current)

@@ -22,6 +22,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty
     {
         private const double difficulty_multiplier = 0.0675;
 
+        private readonly List<OsuDifficultyHitObject> difficultyHitObjects = new List<OsuDifficultyHitObject>();
+
         public OsuDifficultyCalculator(Ruleset ruleset, WorkingBeatmap beatmap)
             : base(ruleset, beatmap)
         {
@@ -75,13 +77,18 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         {
             // The first jump is formed by the first two hitobjects of the map.
             // If the map has less than two OsuHitObjects, the enumerator will not return anything.
+            difficultyHitObjects.Clear();
             for (int i = 1; i < beatmap.HitObjects.Count; i++)
             {
                 var lastLast = i > 1 ? beatmap.HitObjects[i - 2] : null;
                 var last = beatmap.HitObjects[i - 1];
                 var current = beatmap.HitObjects[i];
 
-                yield return new OsuDifficultyHitObject(current, lastLast, last, clockRate);
+                var difficultyHitObject = new OsuDifficultyHitObject(current, lastLast, last, difficultyHitObjects, clockRate);
+
+                yield return difficultyHitObject;
+
+                difficultyHitObjects.Add(difficultyHitObject);
             }
         }
 
