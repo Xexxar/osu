@@ -1,9 +1,7 @@
 ﻿// Copyright (c) ppy Pty Ltd <contact@ppy.sh>. Licensed under the MIT Licence.
 // See the LICENCE file in the repository root for full licence text.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using osu.Game.Rulesets.Difficulty.Preprocessing;
 using osu.Game.Rulesets.Difficulty.Utils;
 using osu.Game.Rulesets.Mods;
@@ -11,123 +9,76 @@ using osu.Game.Rulesets.Mods;
 namespace osu.Game.Rulesets.Difficulty.Skills
 {
     /// <summary>
-    /// Used to processes strain values of <see cref="DifficultyHitObject"/>s, keep track of strain levels caused by the processed objects
-    /// and to calculate a final difficulty value representing the difficulty of hitting all the processed objects.
+    /// A bare minimal abstract skill for fully custom skill implementations.
     /// </summary>
     public abstract class Skill
     {
         /// <summary>
-        /// The peak strain for each <see cref="DifficultyCalculator.SectionLength"/> section of the beatmap.
+        /// <see cref="DifficultyHitObject"/>s that were processed previously. They can affect the difficulty values of the following objects.
         /// </summary>
-        public IReadOnlyList<double> StrainPeaks => strainPeaks;
+        protected readonly ReverseQueue<DifficultyHitObject> Previous;
 
         /// <summary>
-        /// Strain values are multiplied by this number for the given skill. Used to balance the value of different skills between each other.
+        /// Soft capacity of the <see cref="Previous"/> queue.
+        /// <see cref="Previous"/> will automatically resize if it exceeds capacity, but will do so at a very slight performance impact.
+        /// The actual capacity will be set to this value + 1 to allow for storage of the current object before the next can be processed.
         /// </summary>
-        protected abstract double SkillMultiplier { get; }
+        protected virtual int PreviousCollectionSoftCapacity => 0;
 
         /// <summary>
-        /// Determines how quickly strain decays for the given skill.
-        /// For example a value of 0.15 indicates that strain decays to 15% of its original value in one second.
-        /// </summary>
-        protected abstract double StrainDecayBase { get; }
-
-        /// <summary>
-        /// The weight by which each strain value decays.
-        /// </summary>
-        protected virtual double DecayWeight => 0.9;
-
-        /// <summary>
-        /// <see cref="DifficultyHitObject"/>s that were processed previously. They can affect the strain values of the following objects.
-        /// </summary>
-        protected readonly LimitedCapacityStack<DifficultyHitObject> Previous = new LimitedCapacityStack<DifficultyHitObject>(2); // Contained objects not used yet
-
-        /// <summary>
-        /// The current strain level.
-        /// </summary>
-        protected double CurrentStrain { get; private set; } = 1;
-
-        /// <summary>
-        /// Mods for use in skill calculations.
+        /// Visual mods for use in skill calculations.
         /// </summary>
         protected IReadOnlyList<Mod> Mods => mods;
-
-        private double currentSectionPeak = 1; // We also keep track of the peak strain level in the current section.
-
-        private readonly List<double> strainPeaks = new List<double>();
 
         private readonly Mod[] mods;
 
         protected Skill(Mod[] mods)
         {
             this.mods = mods;
+            Previous = new ReverseQueue<DifficultyHitObject>(PreviousCollectionSoftCapacity + 1);
         }
 
         /// <summary>
-        /// Process a <see cref="DifficultyHitObject"/> and update current strain values accordingly.
+        /// Process a <see cref="DifficultyHitObject"/>.
         /// </summary>
+        /// <param name="current">The <see cref="DifficultyHitObject"/> to process.</param>
         public void Process(DifficultyHitObject current)
         {
-            CurrentStrain *= strainDecay(current.DeltaTime);
-            CurrentStrain += StrainValueOf(current) * SkillMultiplier;
+            // Preprocessing
+            RemoveExtraneousHistory(current);
 
-            currentSectionPeak = Math.Max(CurrentStrain, currentSectionPeak);
+            // Processing
+            Calculate(current);
 
-            Previous.Push(current);
+            // Postprocessing
+            AddToHistory(current);
         }
 
         /// <summary>
-        /// Saves the current peak strain level to the list of strain peaks, which will be used to calculate an overall difficulty.
+        /// Remove objects from <see cref="Previous"/> that are no longer needed for calculations from the current object onwards.
         /// </summary>
-        public void SaveCurrentPeak()
+        /// <param name="current">The <see cref="DifficultyHitObject"/> to be processed.</param>
+        protected virtual void RemoveExtraneousHistory(DifficultyHitObject current)
         {
-            if (Previous.Count > 0)
-                strainPeaks.Add(currentSectionPeak);
         }
 
         /// <summary>
-        /// Sets the initial strain level for a new section.
+        /// Add the current <see cref="DifficultyHitObject"/> to the <see cref="Previous"/> queue (if required).
         /// </summary>
-        /// <param name="time">The beginning of the new section in milliseconds.</param>
-        public void StartNewSectionFrom(double time)
+        /// <param name="current">The <see cref="DifficultyHitObject"/> that was just processed.</param>
+        protected virtual void AddToHistory(DifficultyHitObject current)
         {
-            // The maximum strain of the new section is not zero by default, strain decays as usual regardless of section boundaries.
-            // This means we need to capture the strain level at the beginning of the new section, and use that as the initial peak level.
-            if (Previous.Count > 0)
-                currentSectionPeak = GetPeakStrain(time);
         }
 
         /// <summary>
-        /// Retrieves the peak strain at a point in time.
+        /// Calculate the difficulty of a <see cref="DifficultyHitObject"/> and update current strain values accordingly.
         /// </summary>
-        /// <param name="time">The time to retrieve the peak strain at.</param>
-        /// <returns>The peak strain.</returns>
-        protected virtual double GetPeakStrain(double time) => CurrentStrain * strainDecay(time - Previous[0].BaseObject.StartTime);
+        /// <param name="current">The <see cref="DifficultyHitObject"/> to calculate the difficulty of.</param>
+        protected abstract void Calculate(DifficultyHitObject current);
 
         /// <summary>
-        /// Returns the calculated difficulty value representing all processed <see cref="DifficultyHitObject"/>s.
+        /// Returns the calculated difficulty value representing all <see cref="DifficultyHitObject"/>s that have been processed up to this point.
         /// </summary>
-        public double DifficultyValue()
-        {
-            double difficulty = 0;
-            double weight = 1;
-
-            // Difficulty is the weighted sum of the highest strains from every section.
-            // We're sorting from highest to lowest strain.
-            foreach (double strain in strainPeaks.OrderByDescending(d => d))
-            {
-                difficulty += strain * weight;
-                weight *= DecayWeight;
-            }
-
-            return difficulty;
-        }
-
-        /// <summary>
-        /// Calculates the strain value of a <see cref="DifficultyHitObject"/>. This value is affected by previously processed objects.
-        /// </summary>
-        protected abstract double StrainValueOf(DifficultyHitObject current);
-
-        private double strainDecay(double ms) => Math.Pow(StrainDecayBase, ms / 1000);
+        public abstract double DifficultyValue();
     }
 }
