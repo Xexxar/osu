@@ -68,13 +68,16 @@ namespace osu.Game.Rulesets.Difficulty
 
             foreach (var hitObject in difficultyHitObjects)
             {
-                foreach (var skill in skills)
-                {
-                    skill.Process(hitObject);
-                }
+                ProcessSkills(skills, hitObject);
             }
 
             return CreateDifficultyAttributes(beatmap, mods, skills, clockRate);
+        }
+
+        protected virtual void ProcessSkills(Skill[] skills, DifficultyHitObject h)
+        {
+            foreach (Skill s in skills)
+                s.Process(h);
         }
 
         /// <summary>

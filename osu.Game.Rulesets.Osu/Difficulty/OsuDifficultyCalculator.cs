@@ -27,6 +27,12 @@ namespace osu.Game.Rulesets.Osu.Difficulty
         {
         }
 
+        protected override void ProcessSkills(Skill[] skills, DifficultyHitObject h)
+        {
+            skills[0].Process(h);
+            skills[1].Process(h);
+        }
+
         protected override DifficultyAttributes CreateDifficultyAttributes(IBeatmap beatmap, Mod[] mods, Skill[] skills, double clockRate)
         {
             if (beatmap.HitObjects.Count == 0)
