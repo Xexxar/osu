@@ -15,10 +15,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// </summary>
     public class Speed : Skill
     {
-        private double CurrentStrain;
         private const double Base = 0.25;
         private const double SkillMultiplier = 500;
         private const double stars_per_double = 1.05;
+        private const double k = Math.Log(2) / Math.Log(stars_per_double);
         private double DifficultyRating = 0;
 
         public Speed(Mod[] mods)
@@ -30,7 +30,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
         protected override void RemoveExtraneousHistory(DifficultyHitObject current)
         {
-            while (Previous.Count > 1)
+            while (Previous.Count > 16)
                 Previous.Dequeue();
         }
 
@@ -41,13 +41,8 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
         protected sealed override void Calculate(DifficultyHitObject current)
         {
-            CurrentStrain *= Math.Pow(Base, current.DeltaTime / 1000);
+            CurrentStrain *= Math.Pow(Math.Pow(Base, current.DeltaTime / 1000);
             CurrentStrain += StrainValueOf(current) * SkillMultiplier;
-
-            double k = Math.Log(2) / Math.Log(stars_per_double);
-
-            // Console.WriteLine("Speed: " + speedCurrentStrain);
-            // Console.WriteLine("stamina: " + staminaCurrentStrain);
 
             DifficultyRating = Math.Pow(Math.Pow(DifficultyRating, k) + Math.Pow(CurrentStrain, k), 1 / k);
         }
@@ -61,9 +56,9 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
 
             double result = 0;
 
-            if (Previous.Count > 1)
+            if (Previous.Count > 16)
             {
-                result = 1 / osuCurrObj.StrainTime;
+                avg
             }
 
             return result;

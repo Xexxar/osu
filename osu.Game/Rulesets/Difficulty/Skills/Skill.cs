@@ -13,6 +13,8 @@ namespace osu.Game.Rulesets.Difficulty.Skills
     /// </summary>
     public abstract class Skill
     {
+        public double CurrentStrain;
+
         /// <summary>
         /// <see cref="DifficultyHitObject"/>s that were processed previously. They can affect the difficulty values of the following objects.
         /// </summary>

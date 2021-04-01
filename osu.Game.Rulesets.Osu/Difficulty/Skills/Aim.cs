@@ -15,7 +15,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// </summary>
     public class Aim : Skill
     {
-        private double CurrentStrain;
         private const double Base = 0.25;
         private const double SkillMultiplier = 500;
         private const double stars_per_double = 1.15;
