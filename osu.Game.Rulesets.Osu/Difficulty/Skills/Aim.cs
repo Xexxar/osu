@@ -13,53 +13,60 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// <summary>
     /// Represents the skill required to correctly aim at every object in the map with a uniform CircleSize and normalized distances.
     /// </summary>
-    public class Aim : StrainSkill
+    public class Aim : Skill
     {
-        private const double angle_bonus_begin = Math.PI / 3;
-        private const double timing_threshold = 107;
+        private double CurrentStrain;
+        private const double Base = 0.25;
+        private const double SkillMultiplier = 500;
+        private const double stars_per_double = 1.15;
+        private double DifficultyRating = 0;
 
         public Aim(Mod[] mods)
             : base(mods)
         {
         }
 
-        protected override double SkillMultiplier => 2600.25;
-        protected override double StrainDecayBase => 0.15;
+        public override double DifficultyValue() => DifficultyRating;
 
-        protected override double StrainValueOf(DifficultyHitObject current)
+        protected override void RemoveExtraneousHistory(DifficultyHitObject current)
+        {
+            while (Previous.Count > 4)
+                Previous.Dequeue();
+        }
+
+        protected override void AddToHistory(DifficultyHitObject current)
+        {
+            Previous.Enqueue(current);
+        }
+
+        protected sealed override void Calculate(DifficultyHitObject current)
+        {
+            CurrentStrain *= Math.Pow(Base, current.DeltaTime / 1000);
+            CurrentStrain += StrainValueOf(current) * SkillMultiplier;
+
+            double k = Math.Log(2) / Math.Log(stars_per_double);
+
+            // Console.WriteLine("Speed: " + speedCurrentStrain);
+            // Console.WriteLine("stamina: " + staminaCurrentStrain);
+
+            DifficultyRating = Math.Pow(Math.Pow(DifficultyRating, k) + Math.Pow(CurrentStrain, k), 1 / k);
+        }
+
+        protected double StrainValueOf(DifficultyHitObject current)
         {
             if (current.BaseObject is Spinner)
                 return 0;
 
-            var osuCurrent = (OsuDifficultyHitObject)current;
+            var osuCurrObj = (OsuDifficultyHitObject)current;
 
             double result = 0;
 
-            if (Previous.Count > 0)
+            if (Previous.Count > 1)
             {
-                var osuPrevious = (OsuDifficultyHitObject)Previous[0];
-
-                if (osuCurrent.Angle != null && osuCurrent.Angle.Value > angle_bonus_begin)
-                {
-                    const double scale = 90;
-
-                    var angleBonus = Math.Sqrt(
-                        Math.Max(osuPrevious.JumpDistance - scale, 0)
-                        * Math.Pow(Math.Sin(osuCurrent.Angle.Value - angle_bonus_begin), 2)
-                        * Math.Max(osuCurrent.JumpDistance - scale, 0));
-                    result = 1.5 * applyDiminishingExp(Math.Max(0, angleBonus)) / Math.Max(timing_threshold, osuPrevious.StrainTime);
-                }
+                result = osuCurrObj.DistanceVector.Length / osuCurrObj.StrainTime;
             }
 
-            double jumpDistanceExp = applyDiminishingExp(osuCurrent.JumpDistance);
-            double travelDistanceExp = applyDiminishingExp(osuCurrent.TravelDistance);
-
-            return Math.Max(
-                result + (jumpDistanceExp + travelDistanceExp + Math.Sqrt(travelDistanceExp * jumpDistanceExp)) / Math.Max(osuCurrent.StrainTime, timing_threshold),
-                (Math.Sqrt(travelDistanceExp * jumpDistanceExp) + jumpDistanceExp + travelDistanceExp) / osuCurrent.StrainTime
-            );
+            return result;
         }
-
-        private double applyDiminishingExp(double val) => Math.Pow(val, 0.99);
     }
 }

@@ -13,57 +13,60 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
     /// <summary>
     /// Represents the skill required to press keys with regards to keeping up with the speed at which objects need to be hit.
     /// </summary>
-    public class Speed : StrainSkill
+    public class Speed : Skill
     {
-        private const double single_spacing_threshold = 125;
-
-        private const double angle_bonus_begin = 5 * Math.PI / 6;
-        private const double pi_over_4 = Math.PI / 4;
-        private const double pi_over_2 = Math.PI / 2;
-
-        protected override double SkillMultiplier => 1400;
-        protected override double StrainDecayBase => 0.3;
-
-        private const double min_speed_bonus = 75; // ~200BPM
-        private const double max_speed_bonus = 45; // ~330BPM
-        private const double speed_balancing_factor = 40;
+        private double CurrentStrain;
+        private const double Base = 0.25;
+        private const double SkillMultiplier = 500;
+        private const double stars_per_double = 1.05;
+        private double DifficultyRating = 0;
 
         public Speed(Mod[] mods)
             : base(mods)
         {
         }
 
-        protected override double StrainValueOf(DifficultyHitObject current)
+        public override double DifficultyValue() => DifficultyRating;
+
+        protected override void RemoveExtraneousHistory(DifficultyHitObject current)
+        {
+            while (Previous.Count > 1)
+                Previous.Dequeue();
+        }
+
+        protected override void AddToHistory(DifficultyHitObject current)
+        {
+            Previous.Enqueue(current);
+        }
+
+        protected sealed override void Calculate(DifficultyHitObject current)
+        {
+            CurrentStrain *= Math.Pow(Base, current.DeltaTime / 1000);
+            CurrentStrain += StrainValueOf(current) * SkillMultiplier;
+
+            double k = Math.Log(2) / Math.Log(stars_per_double);
+
+            // Console.WriteLine("Speed: " + speedCurrentStrain);
+            // Console.WriteLine("stamina: " + staminaCurrentStrain);
+
+            DifficultyRating = Math.Pow(Math.Pow(DifficultyRating, k) + Math.Pow(CurrentStrain, k), 1 / k);
+        }
+
+        protected double StrainValueOf(DifficultyHitObject current)
         {
             if (current.BaseObject is Spinner)
                 return 0;
 
-            var osuCurrent = (OsuDifficultyHitObject)current;
+            var osuCurrObj = (OsuDifficultyHitObject)current;
 
-            double distance = Math.Min(single_spacing_threshold, osuCurrent.TravelDistance + osuCurrent.JumpDistance);
-            double deltaTime = Math.Max(max_speed_bonus, current.DeltaTime);
+            double result = 0;
 
-            double speedBonus = 1.0;
-            if (deltaTime < min_speed_bonus)
-                speedBonus = 1 + Math.Pow((min_speed_bonus - deltaTime) / speed_balancing_factor, 2);
-
-            double angleBonus = 1.0;
-
-            if (osuCurrent.Angle != null && osuCurrent.Angle.Value < angle_bonus_begin)
+            if (Previous.Count > 1)
             {
-                angleBonus = 1 + Math.Pow(Math.Sin(1.5 * (angle_bonus_begin - osuCurrent.Angle.Value)), 2) / 3.57;
-
-                if (osuCurrent.Angle.Value < pi_over_2)
-                {
-                    angleBonus = 1.28;
-                    if (distance < 90 && osuCurrent.Angle.Value < pi_over_4)
-                        angleBonus += (1 - angleBonus) * Math.Min((90 - distance) / 10, 1);
-                    else if (distance < 90)
-                        angleBonus += (1 - angleBonus) * Math.Min((90 - distance) / 10, 1) * Math.Sin((pi_over_2 - osuCurrent.Angle.Value) / pi_over_4);
-                }
+                result = 1 / osuCurrObj.StrainTime;
             }
 
-            return (1 + (speedBonus - 1) * 0.75) * angleBonus * (0.95 + speedBonus * Math.Pow(distance / single_spacing_threshold, 3.5)) / osuCurrent.StrainTime;
+            return result;
         }
     }
 }

@@ -191,7 +191,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty
             if (mods.Any(m => m is OsuModFlashlight))
                 accuracyValue *= 1.02;
 
-            return accuracyValue;
+            return 0;//accuracyValue;
         }
 
         private int totalHits => countGreat + countOk + countMeh + countMiss;
